@@ -1,0 +1,5 @@
+*.o
+TAGS
+aquarium
+test
+t/all_tests.c
