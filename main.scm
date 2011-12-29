@@ -6,6 +6,8 @@
 (load "map.scm")
 (load "entity.scm")
 
+(load "keys.scm")
+
 (define m (make <cave-map> #:w 80 #:h 60))
 (define (draw-map m)
   (for-each-map m (lambda (x y tile)
@@ -25,6 +27,7 @@
 				 (clear-console)
 				 (draw-map m)
 				 (flush-console)
+				 (try-key-hook (check-keys))
 				 )))
 
 ;; todo:
