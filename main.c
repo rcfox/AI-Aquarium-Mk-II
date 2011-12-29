@@ -5,6 +5,8 @@ void* register_functions(void* data)
 {
 	init_libtcod_console();
 	init_libtcod_keys();
+
+	init_libtcod_map();
 	return data;
 }
 
