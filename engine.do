@@ -1,4 +1,4 @@
-for file in `find . -name 'libtcod*' -prune -o -name 't' -prune -o -name '*.c' -print`; do
+for file in `find . -name 'libtcod-*' -prune -o -name 't' -prune -o -name '*.c' -print`; do
 	DEPS="$DEPS ${file%.c}.o ";
 done
 
