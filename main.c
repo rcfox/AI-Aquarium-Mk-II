@@ -4,6 +4,7 @@
 void* register_functions(void* data)
 {
 	init_libtcod_console();
+	init_libtcod_keys();
 	return data;
 }
 
