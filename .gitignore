@@ -1,5 +1,6 @@
 *.o
+*.x
 TAGS
-aquarium
+engine
 test
 t/all_tests.c
