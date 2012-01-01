@@ -7,6 +7,7 @@ void* register_functions(void* data)
 	init_libtcod_keys();
 
 	init_libtcod_map();
+	init_libtcod_path();
 	return data;
 }
 
