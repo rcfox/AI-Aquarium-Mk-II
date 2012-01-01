@@ -31,6 +31,3 @@
 				 (flush-console)
 				 (try-key-hook (check-keys KEY_PRESSED))
 				 )))
-
-;; todo:
-;; - make the console and stuff accessing from the engine
