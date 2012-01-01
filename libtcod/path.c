@@ -63,6 +63,23 @@ SCM_DEFINE(scm_path_compute, "libtcod-path-compute", 3, 0, 0,
 	return scm_path_to_list(path_smob);
 }
 
+SCM_DEFINE(scm_path_walk, "libtcod-path-walk", 1, 1, 0,
+           (SCM path_smob, SCM recalculate),
+           "")
+{
+	TCOD_path_t path = (TCOD_path_t)SCM_SMOB_DATA(path_smob);
+	bool r = false;
+	if(!SCM_UNBNDP(recalculate)) {
+		r = scm_to_bool(recalculate);
+	}
+	int x,y;
+	if(TCOD_path_walk(path,&x,&y,r)) {
+		return scm_cons(scm_from_int(x),scm_from_int(y));
+	} else {
+		return scm_from_bool(0);
+	}
+}
+
 void init_libtcod_path()
 {
 	path_tag = scm_make_smob_type("libtcod-path", sizeof(TCOD_path_t));

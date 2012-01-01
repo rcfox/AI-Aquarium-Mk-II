@@ -41,13 +41,23 @@
 													   (entities m)))))))
 
 (add-key-hook! "p" (lambda ()
-					 (define p (make-libtcod-path (libtcod-data m)))
-					 (libtcod-path-compute p (position (car (entities m))) (random-free-spot m))
+					 (for-each (lambda (e)
+								 (libtcod-path-compute (path e) (position e) (random-free-spot m)))
+							   (entities m))
 					 (remove-overlay 'path)
 					 (add-overlay 'path (lambda ()
-										  (for-each (lambda (c)
-													  (set-back-colour! (car c) (cdr c) '(255 0 0)))
-													(path->list p))))))
+										  (for-each (lambda (e)
+													  (for-each (lambda (c)
+																  (set-back-colour! (car c) (cdr c) '(50 0 0)))
+																(path->list (path e))))
+													(entities m))))))
+
+(add-key-hook! "m" (lambda ()
+					 (for-each (lambda (e)
+								 (define pos (libtcod-path-walk (path e)))
+								 (if pos
+									 (set! (position e) pos)))
+							   (entities m))))
 
 ;; (add-key-hook! "w" (lambda ()
 ;; 					 (let ((e (car entities)))

@@ -12,7 +12,9 @@
 						  (set! (y o) (cdr p)))
 			#:init-keyword #:pos)
   (name #:init-value "Entity" #:accessor name #:init-keyword #:name)
-  (appearance #:init-value (make <map-element> #:r #\@ #:f '(255 0 0)) #:accessor appearance #:init-keyword #:appearance))
+  (appearance #:init-value (make <map-element> #:r #\@ #:f '(255 0 0)) #:accessor appearance #:init-keyword #:appearance)
+  (path #:accessor path))
 
 (define-method (add! (m <map>) (e <entity>))
-  (set! (entities m) (cons e (entities m))))
+  (set! (entities m) (cons e (entities m)))
+  (set! (path e) (make-libtcod-path (libtcod-data m))))
