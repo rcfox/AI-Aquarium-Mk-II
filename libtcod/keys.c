@@ -1,5 +1,6 @@
 #include <libguile.h>
 #include <libtcod.h>
+#include "libtcod_util.h"
 #include "scm_util.h"
 
 static SCM key_to_alist(TCOD_key_t key)
@@ -29,6 +30,9 @@ SCM_DEFINE(scm_wait_keys, "wait-keys", 0, 1, 0,
 	TCOD_key_t key = TCOD_console_wait_for_keypress(f);
 	return key_to_alist(key);
 }
+
+DEF_LIBTCOD_SCM(KEY_PRESSED);
+DEF_LIBTCOD_SCM(KEY_RELEASED);
 
 SCM_DEFINE(scm_check_keys, "check-keys", 0, 1, 0,
            (SCM flags),
