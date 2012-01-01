@@ -6,6 +6,7 @@
 (load "map.scm")
 (load "entity.scm")
 
+(load "overlays.scm")
 (load "keys.scm")
 
 (define m (make <cave-map> #:w 80 #:h 60))
@@ -20,20 +21,15 @@
 (for-each (lambda (x) (add! m (make <entity> #:pos (random-free-spot m) #:name (string-append "Entity " (number->string x)))))
 		  (iota 10))
 
-(for-each (lambda (e)
-			(for-each (lambda (c)
-						(set-data! m c <foomp>))
-					  (fov m (position e) 7)))
-		  (entities m))
-
 (define running #t)
 (make-thread (lambda ()
 			   (init-console 80 60)
 			   (while running
 				 (clear-console)
 				 (draw-map m)
+				 (draw-overlays)
 				 (flush-console)
-				 (try-key-hook (check-keys))
+				 (try-key-hook (check-keys KEY_PRESSED))
 				 )))
 
 ;; todo:

@@ -30,6 +30,16 @@
 (add-key-hook! "up" (lambda ()
 					  (display "Up!") (newline)))
 
+(add-key-hook! "f" (lambda ()
+					 (if (assoc-ref overlays 'fov)
+						 (remove-overlay 'fov)
+						 (add-overlay 'fov (lambda ()
+											 (for-each (lambda (e)
+														 (for-each (lambda (c)
+																	 (set-back-colour! (car c) (cdr c) '(100 100 0)))
+																   (fov m (position e) 7)))
+													   (entities m)))))))
+
 ;; (add-key-hook! "w" (lambda ()
 ;; 					 (let ((e (car entities)))
 ;; 					   (push-goal! e (move-goal e (cons (entity-x e) (1- (entity-y e))))))))
