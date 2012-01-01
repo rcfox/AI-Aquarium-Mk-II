@@ -17,8 +17,14 @@
   				(draw-character (x e) (y e) (representation a) (fore-colour a) (back-colour a))))
  			(entities m)))
 
-(for-each (lambda (x) (add! m (make <entity> #:pos (random-free-spot m))))
+(for-each (lambda (x) (add! m (make <entity> #:pos (random-free-spot m) #:name (string-append "Entity " (number->string x)))))
 		  (iota 10))
+
+(for-each (lambda (e)
+			(for-each (lambda (c)
+						(set-data! m c <foomp>))
+					  (fov m (position e) 7)))
+		  (entities m))
 
 (define running #t)
 (make-thread (lambda ()

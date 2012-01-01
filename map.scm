@@ -13,18 +13,23 @@
 (define <wall> (make <map-element> #:r #\# #:f '(150 150 150) #:walkable #f #:transparent #f #:cost 99999))
 (define <floor> (make <map-element> #:r #\. #:f '(0 50 0) #:walkable #t #:transparent #t))
 
+(define <foomp> (make <map-element> #:r #\. #:f '(0 0 255) #:walkable #t #:transparent #t))
+
 (define-class <map> ()
   (w #:init-value 0 #:getter width #:init-keyword #:w)
   (h #:init-value 0 #:getter height #:init-keyword #:h)
   (data #:accessor data)
+  (libtcod-data #:accessor libtcod-data)
   (entities #:init-value '() #:accessor entities))
 
 (define-method (initialize (m <map>) initargs)
   (next-method)
-  (set! (data m) (make-array (make <map-element>) (width m) (height m))))
+  (set! (data m) (make-array (make <map-element>) (width m) (height m)))
+  (set! (libtcod-data m) (make-libtcod-map (width m) (height m))))
 
 (define-method (set-data! (m <map>) x y (d <map-element>))
-  (array-set! (data m) d x y))
+  (array-set! (data m) d x y)
+  (libtcod-map-set! (libtcod-data m) x y (transparent d) (walkable d)))
 
 (define-method (set-data! (m <map>) (p <pair>) (d <map-element>))
   (set-data! m (car p) (cdr p) d))
@@ -52,6 +57,12 @@
 	(if (and (in-bounds? m x y) (walkable (get-data m x y)))
 		(cons x y)
 		(random-free-spot m))))
+
+(define-method (fov (m <map>) x y radius)
+  (libtcod-map-fov (libtcod-data m) x y radius #t 0))
+
+(define-method (fov (m <map>) (p <pair>) radius)
+  (fov m (car p) (cdr p) radius))
 
 (define-class <cave-map> (<map>))
 
