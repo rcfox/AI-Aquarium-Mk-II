@@ -13,8 +13,6 @@
 (define <wall> (make <map-element> #:r #\# #:f '(150 150 150) #:walkable #f #:transparent #f #:cost 99999))
 (define <floor> (make <map-element> #:r #\. #:f '(0 50 0) #:walkable #t #:transparent #t))
 
-(define <foomp> (make <map-element> #:r #\. #:f '(0 0 255) #:walkable #t #:transparent #t))
-
 (define-class <map> ()
   (w #:init-value 0 #:getter width #:init-keyword #:w)
   (h #:init-value 0 #:getter height #:init-keyword #:h)
