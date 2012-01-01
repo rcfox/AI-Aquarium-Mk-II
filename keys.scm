@@ -40,6 +40,15 @@
 																   (fov m (position e) 7)))
 													   (entities m)))))))
 
+(add-key-hook! "p" (lambda ()
+					 (define p (make-libtcod-path (libtcod-data m)))
+					 (libtcod-path-compute p (position (car (entities m))) (random-free-spot m))
+					 (remove-overlay 'path)
+					 (add-overlay 'path (lambda ()
+										  (for-each (lambda (c)
+													  (set-back-colour! (car c) (cdr c) '(255 0 0)))
+													(path->list p))))))
+
 ;; (add-key-hook! "w" (lambda ()
 ;; 					 (let ((e (car entities)))
 ;; 					   (push-goal! e (move-goal e (cons (entity-x e) (1- (entity-y e))))))))
