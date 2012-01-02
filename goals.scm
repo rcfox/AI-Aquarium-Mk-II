@@ -3,7 +3,7 @@
 (define-class <goal> ()
   (name #:init-value "Goal" #:accessor name #:init-keyword #:name)
   (owner #:accessor owner)
-  (prerequisites #:init-value '() #:getter prerequisites #:init-keyword #:prereq))
+  (prerequisites #:init-value '() #:accessor prerequisites #:init-keyword #:prereq))
 
 (define-method (push-goal! (e <has-goals>) (g <goal>))
   (set! (goals e) (cons g (goals e)))
@@ -36,4 +36,25 @@
 			  (set! (destination e) (coordinates g)))
 		  (set! (position e) (walk-path e))
 		  #f)
+		#t)))
+
+(define-class <get-goal> (<goal>)
+  (target #:accessor target #:init-keyword #:target))
+
+(define-method (initialize (g <get-goal>) initargs)
+  (next-method)
+  (set! (prerequisites g) (cons (make <move-goal> #:coords (position (target g))) (prerequisites g))))
+
+(define-method (do-goal (g <get-goal>))
+  (let ((e (owner g))
+		(i (target g)))
+	(if (find (lambda (x) (eq? x i)) (entities m)) ;; Make sure the item is still on the map
+		(if (equal? (position i) (position e))
+			(begin
+			  (add! e i)
+			  (rem! m i)
+			  #t)
+			(begin ;; The item moved!
+			  (push-goal! e (make <move-goal> #:coords (position i)))
+			  #f))
 		#t)))
