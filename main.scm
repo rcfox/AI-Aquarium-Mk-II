@@ -11,13 +11,6 @@
 (load "keys.scm")
 
 (define m (make <map> #:w 80 #:h 60))
-(define (draw-map m)
-  (for-each-map m (lambda (x y tile)
-					(draw-character x y (representation tile) (fore-colour tile) (back-colour tile))))
-  (for-each (lambda (e)
-  			  (let ((a (appearance e)))
-  				(draw-character (x e) (y e) (representation a) (fore-colour a) (back-colour a))))
- 			(entities m)))
 
 (for-each (lambda (x) (add! m (make <person> #:pos (random-free-spot m) #:name (string-append "Guy " (number->string x)))))
 		  (iota 10))
