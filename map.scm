@@ -22,8 +22,8 @@
 
 (define-method (initialize (m <map>) initargs)
   (next-method)
-  (set! (data m) (make-array (make <map-element>) (width m) (height m)))
-  (set! (libtcod-data m) (make-libtcod-map (width m) (height m))))
+  (set! (data m) (make-array <floor> (width m) (height m)))
+  (set! (libtcod-data m) (make-libtcod-map (width m) (height m) #t #t)))
 
 (define-method (set-data! (m <map>) x y (d <map-element>))
   (array-set! (data m) d x y)

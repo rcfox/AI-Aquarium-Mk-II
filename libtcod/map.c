@@ -12,12 +12,21 @@ static size_t scm_free_map(SCM map_smob)
 	return 0;
 }
 
-SCM_DEFINE(scm_make_map, "make-libtcod-map", 2, 0, 0,
-           (SCM width, SCM height),
+SCM_DEFINE(scm_make_map, "make-libtcod-map", 2, 2, 0,
+           (SCM width, SCM height, SCM transparent, SCM walkable),
            "")
 {
 	SCM smob;
 	TCOD_map_t map = (TCOD_map_t)TCOD_map_new(scm_to_int(width),scm_to_int(height));
+
+	if(!SCM_UNBNDP(transparent)) {
+		if(!SCM_UNBNDP(walkable)) {
+			TCOD_map_clear(map,scm_to_bool(transparent),scm_to_bool(walkable));
+		} else
+		{
+			scm_wrong_num_args(scm_make_map__name);
+		}
+	}
 
 	SCM_NEWSMOB(smob,map_tag,map);
 	return smob;
