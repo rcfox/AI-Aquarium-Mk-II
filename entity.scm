@@ -13,8 +13,18 @@
 			#:init-keyword #:pos)
   (name #:init-value "Entity" #:accessor name #:init-keyword #:name)
   (appearance #:init-value (make <map-element> #:r #\@ #:f '(255 0 0)) #:accessor appearance #:init-keyword #:appearance)
-  (path #:accessor path))
+  (path #:accessor path)
+  (goals #:init-value '() #:accessor goals)
+  (destination #:accessor destination
+			   #:allocation #:virtual
+			   #:slot-ref (lambda (e)
+							(libtcod-path-destination (path e)))
+			   #:slot-set! (lambda (e p)
+							 (libtcod-path-compute (path e) (position e) p))))
 
 (define-method (add! (m <map>) (e <entity>))
   (set! (entities m) (cons e (entities m)))
   (set! (path e) (make-libtcod-path (libtcod-data m))))
+
+(define-method (walk-path (e <entity>))
+  (libtcod-path-walk (path e) #t))

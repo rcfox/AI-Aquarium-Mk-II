@@ -80,6 +80,16 @@ SCM_DEFINE(scm_path_walk, "libtcod-path-walk", 1, 1, 0,
 	}
 }
 
+SCM_DEFINE(scm_path_dest, "libtcod-path-destination", 1, 0, 0,
+           (SCM path_smob),
+           "")
+{
+	TCOD_path_t path = (TCOD_path_t)SCM_SMOB_DATA(path_smob);
+	int x,y;
+	TCOD_path_get_destination(path, &x, &y);
+	return scm_cons(scm_from_int(x), scm_from_int(y));
+}
+
 void init_libtcod_path()
 {
 	path_tag = scm_make_smob_type("libtcod-path", sizeof(TCOD_path_t));
