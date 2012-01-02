@@ -58,3 +58,22 @@
 			  (push-goal! e (make <move-goal> #:coords (position i)))
 			  #f))
 		#t)))
+
+(define-class <collect-goal> (<goal>)
+  (type #:accessor type #:init-keyword #:type)
+  (count #:accessor count #:init-value -1 #:init-keyword #:count))
+
+(define-method (do-goal (g <collect-goal>))
+  (let ((objects (sort (filter (lambda (x) (is-a? x (type g))) (entities m))
+					   (lambda (a b) (< (distance a (owner g))
+										(distance b (owner g)))))))
+	(if (null? objects)
+		#t
+		(begin
+		  (if (equal? 0 (count g))
+			  #t
+			  (begin
+				(if (> (count g) 0)
+					(set! (count g) (1- (count g))))
+				(push-goal! (owner g) (make <get-goal> #:target (car objects)))
+				#f))))))

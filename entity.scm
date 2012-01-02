@@ -12,13 +12,16 @@
 						  (set! (y o) (cdr p)))
 			#:init-keyword #:pos)
   (name #:init-value "Entity" #:accessor name #:init-keyword #:name)
-  (appearance #:init-value (make <map-element> #:r #\$ #:f '(0 255 0)) #:accessor appearance #:init-keyword #:appearance))
+  (appearance #:init-value (make <map-element> #:r #\? #:f '(255 255 255)) #:accessor appearance #:init-keyword #:appearance))
 
 (define-method (add! (m <map>) (e <entity>))
   (set! (entities m) (cons e (entities m))))
 
 (define-method (rem! (m <map>) (e <entity>))
   (set! (entities m) (delq e (entities m))))
+
+(define-method (distance (e1 <entity>) (e2 <entity>))
+  (sqrt (+ (expt (- (x e1) (x e2)) 2) (expt (- (y e1) (y e2)) 2))))
 
 (define-class <can-move> (<entity>)
   (path #:accessor path)
@@ -53,3 +56,6 @@
 
 (define-class <person> (<living> <can-move> <has-goals> <has-inventory>)
   (appearance #:init-value (make <map-element> #:r #\@ #:f '(255 0 0)) #:accessor appearance #:init-keyword #:appearance))
+
+(define-class <item> (<entity>)
+  (appearance #:init-value (make <map-element> #:r #\$ #:f '(0 255 0)) #:accessor appearance #:init-keyword #:appearance))

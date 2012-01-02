@@ -22,7 +22,7 @@
 (for-each (lambda (x) (add! m (make <person> #:pos (random-free-spot m) #:name (string-append "Guy " (number->string x)))))
 		  (iota 10))
 
-(for-each (lambda (x) (add! m (make <entity> #:pos (random-free-spot m) #:name (string-append "Item " (number->string x)))))
+(for-each (lambda (x) (add! m (make <item> #:pos (random-free-spot m) #:name (string-append "Item " (number->string x)))))
 		  (iota 10))
 
 (define e (car (filter (lambda (x) (is-a? x <person>)) (entities m))))
