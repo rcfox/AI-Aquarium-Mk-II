@@ -21,7 +21,10 @@
   (set! (entities m) (delq e (entities m))))
 
 (define-method (distance (e1 <entity>) (e2 <entity>))
-  (sqrt (+ (expt (- (x e1) (x e2)) 2) (expt (- (y e1) (y e2)) 2))))
+  (distance (position e1) (position e2)))
+
+(define-method (distance (p1 <pair>) (p2 <pair>))
+  (sqrt (+ (expt (- (car p1) (car p2)) 2) (expt (- (cdr p1) (cdr p2)) 2))))
 
 (define-class <can-move> (<entity>)
   (path #:accessor path)

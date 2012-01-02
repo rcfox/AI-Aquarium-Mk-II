@@ -13,16 +13,16 @@
 (define m (make <map> #:w 80 #:h 60))
 
 (for-each (lambda (x) (add! m (make <person> #:pos (random-free-spot m) #:name (string-append "Guy " (number->string x)))))
-		  (iota 10))
+		  (iota 3))
 
 (for-each (lambda (x) (add! m (make <item> #:pos (random-free-spot m) #:name (string-append "Item " (number->string x)))))
-		  (iota 10))
+		  (iota 50))
 
 (define e (car (filter (lambda (x) (is-a? x <person>)) (entities m))))
 (for-each (lambda (e)
-			(push-goal! e (make <move-goal> #:coords '(10 . 10)
-								#:prereq (list (make <move-goal> #:coords '(70 . 50))
-											   (make <move-goal> #:coords '(60 . 1))))))
+			;(push-goal! e (make <move-goal> #:coords (random-free-spot m)))
+			(push-goal! e (make <collect-goal> #:type <item>))
+			)
 		  (filter (lambda (x) (is-a? x <has-goals>)) (entities m)))
 
 (define running #t)

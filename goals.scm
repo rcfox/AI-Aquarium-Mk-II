@@ -64,6 +64,7 @@
   (count #:accessor count #:init-value -1 #:init-keyword #:count))
 
 (define-method (do-goal (g <collect-goal>))
+  ;; Sort so that we pick the next closest object
   (let ((objects (sort (filter (lambda (x) (is-a? x (type g))) (entities m))
 					   (lambda (a b) (< (distance a (owner g))
 										(distance b (owner g)))))))
