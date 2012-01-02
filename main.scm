@@ -12,11 +12,12 @@
 
 (define m (make <map> #:w 80 #:h 60))
 
-(for-each (lambda (x) (add! m (make <person> #:pos (random-free-spot m) #:name (string-append "Guy " (number->string x)))))
-		  (iota 3))
+(for-each (lambda (x) (add! m (make <person> #:pos (random-free-spot m) #:name (string-append "Guy " (number->string x))
+									#:sight (+ 5 (rand-int 5)))))
+		  (iota 10))
 
 (for-each (lambda (x) (add! m (make <item> #:pos (random-free-spot m) #:name (string-append "Item " (number->string x)))))
-		  (iota 50))
+		  (iota 100))
 
 (define e (car (filter (lambda (x) (is-a? x <person>)) (entities m))))
 (for-each (lambda (e)

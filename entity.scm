@@ -27,6 +27,7 @@
   (sqrt (+ (expt (- (car p1) (car p2)) 2) (expt (- (cdr p1) (cdr p2)) 2))))
 
 (define-class <can-move> (<entity>)
+  (sight-radius #:accessor sight-radius #:init-value 5 #:init-keyword #:sight)
   (path #:accessor path)
   (destination #:accessor destination
 			   #:allocation #:virtual

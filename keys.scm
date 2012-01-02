@@ -33,9 +33,9 @@
 						 (add-overlay 'fov (lambda ()
 											 (for-each (lambda (e)
 														 (for-each (lambda (c)
-																	 (let ((colour (inexact->exact (round (* 100 (/ (- 7 (distance (position e) c)) 7))))))
-																	   (set-back-colour! (car c) (cdr c) (list colour colour 0) BKGND_ADD)))
-																   (fov m (position e) 7)))
+																	 (set-back-colour! (car c) (cdr c) '(100 100 0) BKGND_ADDA
+																					   (expt (/ (- (sight-radius e) (distance (position e) c)) (sight-radius e)) 2)))
+																   (fov m (position e) (sight-radius e))))
 													   (filter (lambda (x) (is-a? x <can-move>)) (entities m))))))))
 
 (add-key-hook! "p" (lambda ()
