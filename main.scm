@@ -1,15 +1,16 @@
-(use-modules (oop goops)
+(use-modules (oop goops describe)
 			 (srfi srfi-1)
 			 (ice-9 threads))
 
 (load "util.scm")
 (load "map.scm")
 (load "entity.scm")
+(load "goals.scm")
 
 (load "overlays.scm")
 (load "keys.scm")
 
-(define m (make <cave-map> #:w 80 #:h 60))
+(define m (make <map> #:w 80 #:h 60))
 (define (draw-map m)
   (for-each-map m (lambda (x y tile)
 					(draw-character x y (representation tile) (fore-colour tile) (back-colour tile))))
@@ -18,13 +19,21 @@
   				(draw-character (x e) (y e) (representation a) (fore-colour a) (back-colour a))))
  			(entities m)))
 
-(for-each (lambda (x) (add! m (make <entity> #:pos (random-free-spot m) #:name (string-append "Entity " (number->string x)))))
+(for-each (lambda (x) (add! m (make <person> #:pos (random-free-spot m) #:name (string-append "Guy " (number->string x)))))
 		  (iota 10))
+
+(define e (car (entities m)))
+(for-each (lambda (e)
+			(push-goal! e (make <move-goal> #:coords '(10 . 10)
+								#:prereq (list (make <move-goal> #:coords '(70 . 50))
+											   (make <move-goal> #:coords '(60 . 1))))))
+		  (entities m))
 
 (define running #t)
 (make-thread (lambda ()
-			   (init-console 80 60)
+			   (init-console 80 60 "Roguelike Test" 10)
 			   (while running
+				 (for-each (lambda (e) (do-goal e)) (entities m))
 				 (clear-console)
 				 (draw-map m)
 				 (draw-overlays)

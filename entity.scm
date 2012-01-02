@@ -12,9 +12,13 @@
 						  (set! (y o) (cdr p)))
 			#:init-keyword #:pos)
   (name #:init-value "Entity" #:accessor name #:init-keyword #:name)
-  (appearance #:init-value (make <map-element> #:r #\@ #:f '(255 0 0)) #:accessor appearance #:init-keyword #:appearance)
+  (appearance #:init-value (make <map-element> #:r #\@ #:f '(255 0 0)) #:accessor appearance #:init-keyword #:appearance))
+
+(define-method (add! (m <map>) (e <entity>))
+  (set! (entities m) (cons e (entities m))))
+
+(define-class <can-move> (<entity>)
   (path #:accessor path)
-  (goals #:init-value '() #:accessor goals)
   (destination #:accessor destination
 			   #:allocation #:virtual
 			   #:slot-ref (lambda (e)
@@ -22,9 +26,17 @@
 			   #:slot-set! (lambda (e p)
 							 (libtcod-path-compute (path e) (position e) p))))
 
-(define-method (add! (m <map>) (e <entity>))
-  (set! (entities m) (cons e (entities m)))
-  (set! (path e) (make-libtcod-path (libtcod-data m))))
+(define-method (add! (m <map>) (e <can-move>))
+  (set! (path e) (make-libtcod-path (libtcod-data m)))
+  (next-method))
 
-(define-method (walk-path (e <entity>))
+(define-method (walk-path (e <can-move>))
   (libtcod-path-walk (path e) #t))
+
+(define-class <living> (<entity>)
+  (health #:init-value 0 #:accessor health #:init-keyword #:health))
+
+(define-class <has-goals> (<entity>)
+  (goals #:init-value '() #:accessor goals))
+
+(define-class <person> (<living> <can-move> <has-goals>) )
