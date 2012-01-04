@@ -10,7 +10,7 @@
 (load "overlays.scm")
 (load "keys.scm")
 
-(define m (make <map> #:w 80 #:h 60))
+(define m (make <cave-map> #:w 80 #:h 60))
 
 (for-each (lambda (x) (add! m (make <person> #:pos (random-free-spot m) #:name (string-append "Guy " (number->string x))
 									#:sight (+ 5 (rand-int 5)))))
