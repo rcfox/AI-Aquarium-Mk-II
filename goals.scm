@@ -34,8 +34,13 @@
 		  ;; Reset the destination if this goal got interrupted
 		  (if (not (equal? (coordinates g) (destination e)))
 			  (set! (destination e) (coordinates g)))
-		  (set! (position e) (walk-path e))
-		  #f)
+		  (let ((step (walk-path e)))
+			(if step
+				(begin
+				  (set! (position e) step)
+				  #f)
+				#t ;; can't proceed
+				)))
 		#t)))
 
 (define-class <get-goal> (<goal>)
@@ -65,11 +70,16 @@
 
 (define-method (do-goal (g <collect-goal>))
   ;; Sort so that we pick the next closest object
-  (let ((objects (sort (filter (lambda (x) (is-a? x (type g))) (entities m))
+  (let ((objects (sort (filter (lambda (x) (is-a? x (type g))) (seen-entities (owner g)))
 					   (lambda (a b) (< (distance a (owner g))
 										(distance b (owner g)))))))
 	(if (null? objects)
-		#t
+		;; If nothing is found, wander randomly to find more.
+		(begin
+		  (let ((target (find (lambda (x) (> (/ 1 (length (seen-space (owner g)))) (rand-float))) (seen-space (owner g)))))
+			(if target
+				(push-goal! (owner g) (make <move-goal> #:coords target))))
+		  #f)
 		(begin
 		  (if (equal? 0 (count g))
 			  #t
