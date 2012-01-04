@@ -27,7 +27,6 @@
   (sqrt (+ (expt (- (car p1) (car p2)) 2) (expt (- (cdr p1) (cdr p2)) 2))))
 
 (define-class <can-move> (<entity>)
-  (sight-radius #:accessor sight-radius #:init-value 5 #:init-keyword #:sight)
   (path #:accessor path)
   (destination #:accessor destination
 			   #:allocation #:virtual
@@ -42,6 +41,20 @@
 
 (define-method (walk-path (e <can-move>))
   (libtcod-path-walk (path e) #t))
+
+(define-class <can-see> (<entity>)
+  (sight-radius #:accessor sight-radius #:init-value 5 #:init-keyword #:sight)
+  (seen-space #:accessor seen-space #:init-value '())
+  (seen-entities #:accessor seen-entities #:init-value '()))
+
+(define-method (look (e <can-see>))
+  (set! (seen-space e) (fov m (position e) (sight-radius e)))
+  (set! (seen-entities e) (append-map (lambda (x)
+										(partition (lambda (e)
+													 (equal? (position e) x))
+												   (entities m)))
+									  (seen-space e)))
+  (seen-space e))
 
 (define-class <living> (<entity>)
   (health #:init-value 0 #:accessor health #:init-keyword #:health))
@@ -58,7 +71,7 @@
 (define-method (rem! (e <has-inventory>) (i <entity>))
   (set! (inventory e) (delq i (inventory e))))
 
-(define-class <person> (<living> <can-move> <has-goals> <has-inventory>)
+(define-class <person> (<living> <can-move> <can-see> <has-goals> <has-inventory>)
   (appearance #:init-value (make <map-element> #:r #\@ #:f '(255 0 0)) #:accessor appearance #:init-keyword #:appearance))
 
 (define-class <item> (<entity>)

@@ -20,7 +20,7 @@
 									  (h (hash-ref key-hooks hook-name)))
 								 (if (hook? h)
 									 (run-hook h))))
-							   ))))
+							 ))))
 
 (add-key-hook! "q" (lambda ()
 					 (display "quit!")
@@ -32,11 +32,15 @@
 						 (remove-overlay 'fov)
 						 (add-overlay 'fov (lambda ()
 											 (for-each (lambda (e)
+														 (for-each (lambda (f)
+																	 (let ((a (appearance f)))
+																	   (draw-character (x f) (y f) (representation a) (fore-colour a) (back-colour a))))
+																   (seen-entities e))
 														 (for-each (lambda (c)
 																	 (set-back-colour! (car c) (cdr c) '(100 100 0) BKGND_ADDA
 																					   (expt (/ (- (sight-radius e) (distance (position e) c)) (sight-radius e)) 2)))
-																   (fov m (position e) (sight-radius e))))
-													   (filter (lambda (x) (is-a? x <can-move>)) (entities m))))))))
+																   (look e)))
+													   (filter (lambda (x) (is-a? x <can-see>)) (entities m))))))))
 
 (add-key-hook! "p" (lambda ()
 					 (if (assoc-ref overlays 'path)
