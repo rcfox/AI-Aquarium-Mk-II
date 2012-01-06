@@ -6,7 +6,7 @@
 (load "map.scm")
 (load "entity.scm")
 (load "goals.scm")
-
+(load "camera.scm")
 (load "overlays.scm")
 (load "keys.scm")
 
@@ -26,14 +26,18 @@
 			)
 		  (filter (lambda (x) (is-a? x <has-goals>)) (entities m)))
 
+(define cam (make <camera> #:w 80 #:h 60 #:map m))
+(add-overlay! cam 'fov (fov-overlay cam))
+(add-hook! (moved-hook e) (lambda (e) (set! (position cam) (position e))))
+
+(define cameras (list cam))
+
 (define running #t)
 (make-thread (lambda ()
 			   (init-console 80 60 "Roguelike Test" 10)
 			   (while running
-				 (for-each (lambda (e) (do-goal e)) (filter (lambda (x) (is-a? x <has-goals>)) (entities m)))
+				 (for-each (lambda (e) (look e) (do-goal e)) (filter (lambda (x) (is-a? x <has-goals>)) (entities m)))
 				 (clear-console)
-				 (draw-map m)
-				 (draw-overlays)
+				 (for-each draw cameras)
 				 (flush-console)
-				 (try-key-hook (check-keys KEY_PRESSED))
-				 )))
+				 (try-key-hook (check-keys KEY_PRESSED)))))
