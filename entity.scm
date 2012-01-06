@@ -1,6 +1,7 @@
 (use-modules (oop goops))
 
 (define-class <entity> ()
+  (moved-hook #:init-form (make-hook 1) #:accessor moved-hook)
   (x #:init-value 0 #:accessor x #:init-keyword #:x)
   (y #:init-value 0 #:accessor y #:init-keyword #:y)
   (position #:accessor position
@@ -9,7 +10,8 @@
 						 (cons (x o) (y o)))
 			#:slot-set! (lambda (o p)
 						  (set! (x o) (car p))
-						  (set! (y o) (cdr p)))
+						  (set! (y o) (cdr p))
+						  (run-hook (moved-hook o) o))
 			#:init-keyword #:pos)
   (name #:init-value "Entity" #:accessor name #:init-keyword #:name)
   (appearance #:init-value (make <map-element> #:r #\? #:f '(255 255 255)) #:accessor appearance #:init-keyword #:appearance))
