@@ -39,19 +39,32 @@
   (get-data m (car p) (cdr p)))
 
 (define-method (for-each-map (m <map>) proc)
+  (for-each-map
+   m
+   proc
+   (iota (car (array-dimensions (data m))))
+   (iota (cadr (array-dimensions (data m))))))
+
+(define-method (for-each-map (m <map>) proc (x-list <list>) (y-list <list>))
   (for-each (lambda (y)
 			  (for-each (lambda (x)
-						  (proc x y (array-ref (data m) x y)))
-						(iota (car (array-dimensions (data m))))))
-			(iota (cadr (array-dimensions (data m))))))
+						  (if (in-bounds? m x y)
+							  (proc x y (array-ref (data m) x y))))
+						x-list))
+			y-list))
 
 (define-method (in-bounds? (m <map>) x y)
   (and (and (> x 0) (> y 0))
 	   (and (< x (1- (width m))) (< y (1- (height m))))))
 
-(define (draw-map m)
+(define-method (draw (m <map>))
   (for-each-map m (lambda (x y tile)
 					(draw-character x y (representation tile) (fore-colour tile) (back-colour tile)))))
+
+(define-method (draw (m <map>) (x-list <list>) (y-list <list>) x-offset y-offset)
+  (for-each-map m (lambda (x y tile)
+					(draw-character (- x x-offset) (- y y-offset) (representation tile) (fore-colour tile) (back-colour tile)))
+				x-list y-list))
 
 (define-method (random-free-spot (m <map>))
   (let ((x (rand-int (width m)))
