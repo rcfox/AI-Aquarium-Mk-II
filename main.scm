@@ -10,11 +10,11 @@
 (load "overlays.scm")
 (load "keys.scm")
 
-(define m (make <cave-map> #:w 80 #:h 60))
+(define m (make <cave-map> #:w 180 #:h 160))
 
 (for-each (lambda (x) (add! m (make <person> #:pos (random-free-spot m) #:name (string-append "Guy " (number->string x))
 									#:sight (+ 5 (rand-int 5)))))
-		  (iota 10))
+		  (iota 1))
 
 (for-each (lambda (x) (add! m (make <item> #:pos (random-free-spot m) #:name (string-append "Item " (number->string x)))))
 		  (iota 100))
@@ -26,7 +26,7 @@
 			)
 		  (filter (lambda (x) (is-a? x <has-goals>)) (entities m)))
 
-(define cam (make <camera> #:w 80 #:h 60 #:map m))
+(define cam (make <camera> #:w 80 #:h 60 #:map (seen-map e)))
 (add-overlay! cam 'fov (fov-overlay cam))
 (add-hook! (moved-hook e) (lambda (e) (set! (position cam) (position e))))
 
