@@ -17,12 +17,15 @@
 
 (define-method (do-goal (e <has-goals>))
   (if (not (null? (goals e)))
-	  (if (do-goal (car (goals e)))
-		  (pop-goal! e))))
+	  (let ((status (do-goal (car (goals e)))))
+		(case status
+			  ('cant-do '())
+			  ('not-done '())
+			  ('success (pop-goal! e))
+			  ('failure (pop-goal! e))))))
 
 (define-method (do-goal (g <goal>))
-  #f)
-
+  'cant-do)
 
 (define-class <move-goal> (<goal>)
   (coordinates #:init-value '(0 . 0) #:accessor coordinates #:init-keyword #:coords))
@@ -38,10 +41,10 @@
 			(if step
 				(begin
 				  (set! (position e) step)
-				  #f)
-				#t ;; can't proceed
+				  'not-done)
+				'failure ;; can't proceed
 				)))
-		#t)))
+		'success)))
 
 (define-class <get-goal> (<goal>)
   (target #:accessor target #:init-keyword #:target))
@@ -58,11 +61,11 @@
 			(begin
 			  (add! e i)
 			  (rem! m i)
-			  #t)
+			  'success)
 			(begin ;; The item moved!
 			  (push-goal! e (make <move-goal> #:coords (position i)))
-			  #f))
-		#t)))
+			  'not-done))
+		'failure)))
 
 (define-class <collect-goal> (<goal>)
   (type #:accessor type #:init-keyword #:type)
@@ -79,12 +82,12 @@
 		  (let ((target (find (lambda (x) (> (/ 1 (length (seen-space (owner g)))) (rand-float))) (seen-space (owner g)))))
 			(if target
 				(push-goal! (owner g) (make <move-goal> #:coords target))))
-		  #f)
+		  'cant-do)
 		(begin
 		  (if (equal? 0 (count g))
-			  #t
+			  'success
 			  (begin
 				(if (> (count g) 0)
 					(set! (count g) (1- (count g))))
 				(push-goal! (owner g) (make <get-goal> #:target (car objects)))
-				#f))))))
+				'not-done))))))
