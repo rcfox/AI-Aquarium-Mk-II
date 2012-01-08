@@ -14,7 +14,7 @@
 
 (for-each (lambda (x) (add! m (make <person> #:pos (random-free-spot m) #:name (string-append "Guy " (number->string x))
 									#:sight (+ 5 (rand-int 5)))))
-		  (iota 1))
+		  (iota 10))
 
 (for-each (lambda (x) (add! m (make <item> #:pos (random-free-spot m) #:name (string-append "Item " (number->string x)))))
 		  (iota 100))
@@ -27,7 +27,7 @@
 		  (filter (lambda (x) (is-a? x <has-goals>)) (entities m)))
 
 (define cam (make <camera> #:w 80 #:h 60 #:map (seen-map e)))
-(add-overlay! cam 'fov (fov-overlay cam))
+(add-overlay! cam 'fov (fov-overlay-single cam e))
 (add-hook! (moved-hook e) (lambda (e) (set! (position cam) (position e))))
 
 (define cameras (list cam))
