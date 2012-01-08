@@ -10,7 +10,7 @@
 (load "overlays.scm")
 (load "keys.scm")
 
-(define m (make <cave-map> #:w 180 #:h 160))
+(define m (make <cave-map> #:w 80 #:h 60))
 
 (for-each (lambda (x) (add! m (make <person> #:pos (random-free-spot m) #:name (string-append "Guy " (number->string x))
 									#:sight (+ 5 (rand-int 5)))))
@@ -21,7 +21,7 @@
 
 (define e (car (filter (lambda (x) (is-a? x <person>)) (entities m))))
 (for-each (lambda (e)
-			;(push-goal! e (make <move-goal> #:coords (random-free-spot m)))
+			(push-goal! e (make <wander-goal>))
 			(push-goal! e (make <collect-goal> #:type <item>))
 			)
 		  (filter (lambda (x) (is-a? x <has-goals>)) (entities m)))

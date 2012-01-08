@@ -10,17 +10,23 @@
   (set! (owner g) e)
   (for-each (lambda (prereq)
 			  (push-goal! e prereq))
-			(reverse (prerequisites g))))
+			(reverse (prerequisites g)))
+  (set! (prerequisites g) '()))
 
 (define-method (pop-goal! (e <has-goals>))
-  (set! (goals e) (cdr (goals e))))
+  (let ((head (car (goals e))))
+	(set! (goals e) (cdr (goals e)))
+	head))
 
 (define-method (do-goal (e <has-goals>))
   (if (not (null? (goals e)))
 	  (let ((status (do-goal (car (goals e)))))
 		(case status
-			  ('cant-do '())
-			  ('not-done '())
+			  ('cant-do (begin  ;; Do the next goal instead
+						  (let ((top-goal (pop-goal! e)))
+							(do-goal e)
+							(push-goal! e top-goal))))
+			  ('progressed '())
 			  ('success (pop-goal! e))
 			  ('failure (pop-goal! e))))))
 
@@ -41,7 +47,7 @@
 			(if step
 				(begin
 				  (set! (position e) step)
-				  'not-done)
+				  'progressed)
 				'failure ;; can't proceed
 				)))
 		'success)))
@@ -64,7 +70,7 @@
 			  'success)
 			(begin ;; The item moved!
 			  (push-goal! e (make <move-goal> #:coords (position i)))
-			  'not-done))
+			  'progressed))
 		'failure)))
 
 (define-class <collect-goal> (<goal>)
@@ -77,12 +83,7 @@
 					   (lambda (a b) (< (distance a (owner g))
 										(distance b (owner g)))))))
 	(if (null? objects)
-		;; If nothing is found, wander randomly to find more.
-		(begin
-		  (let ((target (find (lambda (x) (> (/ 1 (length (seen-space (owner g)))) (rand-float))) (seen-space (owner g)))))
-			(if target
-				(push-goal! (owner g) (make <move-goal> #:coords target))))
-		  'cant-do)
+		'cant-do
 		(begin
 		  (if (equal? 0 (count g))
 			  'success
@@ -90,4 +91,13 @@
 				(if (> (count g) 0)
 					(set! (count g) (1- (count g))))
 				(push-goal! (owner g) (make <get-goal> #:target (car objects)))
-				'not-done))))))
+				'progressed))))))
+
+(define-class <wander-goal> (<goal>))
+
+(define-method (do-goal (g <wander-goal>))
+  (let ((target (find (lambda (x) (> (/ 1 (length (seen-space (owner g)))) (rand-float))) (seen-space (owner g)))))
+	(if target
+		(push-goal! (owner g) (make <move-goal> #:coords target))
+		'progressed))
+  'cant-do)
