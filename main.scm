@@ -19,16 +19,16 @@
 (for-each (lambda (x) (add! m (make <item> #:pos (random-free-spot m) #:name (string-append "Item " (number->string x)))))
 		  (iota 100))
 
-(define e (car (filter (lambda (x) (is-a? x <person>)) (entities m))))
+(define player (car (filter (lambda (x) (is-a? x <person>)) (entities m))))
 (for-each (lambda (e)
 			(push-goal! e (make <wander-goal>))
 			(push-goal! e (make <collect-goal> #:type <item>))
 			)
 		  (filter (lambda (x) (is-a? x <has-goals>)) (entities m)))
 
-(define cam (make <camera> #:w 80 #:h 60 #:map (seen-map e)))
-(add-overlay! cam 'fov (fov-overlay-single cam e))
-(add-hook! (moved-hook e) (lambda (e) (set! (position cam) (position e))))
+(define cam (make <camera> #:w 80 #:h 60 #:map (seen-map player)))
+(add-overlay! cam 'fov (fov-overlay-single cam player))
+(add-hook! (moved-hook player) (lambda (e) (set! (position cam) (position e))))
 
 (define cameras (list cam))
 
