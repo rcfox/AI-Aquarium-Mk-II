@@ -22,8 +22,9 @@
 	  (do-goal e (goals e))))
 
 (define-method (do-goal (e <has-goals>) (goal-list <list>))
-  (let ((g (car goal-list)))
-	(case (do-goal g)
+  (let* ((g (car goal-list))
+		 (status (do-goal g)))
+	(case status
 	  ('cant-do
 	   (do-goal e (cdr goal-list))) ;; try the next goal
 	  ('progressed '())
@@ -32,7 +33,8 @@
 	   (run-hook (success-hook g) g))
 	  ('failure
 	   (remove-goal! e g)
-	   (run-hook (failure-hook g) g)))))
+	   (run-hook (failure-hook g) g)))
+	(cons g status)))
 
 (define-method (do-goal (g <goal>))
   (let ((statuses (map do-goal (prerequisites g)))) ;; TODO: this will perform all sub-goals, which isn't the intention...
@@ -68,6 +70,30 @@
 							  'failure ;; can't proceed
 							  ))))))
 	  (else status))))
+
+(define-class <follow-goal> (<goal>)
+  (target #:accessor target #:init-keyword #:target))
+
+(define-method (do-goal (g <follow-goal>))
+  (let ((status (next-method)))
+	(case status
+	  ('success (let ((e (owner g))
+					  (t (target g)))
+				  (if (equal? (position t) (position e))
+					  'success
+					  (begin
+						;; Reset the destination if this goal got interrupted
+						(if (not (equal? (position t) (destination e)))
+							(set! (destination e) (position t)))
+						(let ((step (walk-path e)))
+						  (if step
+							  (begin
+								(set! (position e) step)
+								'progressed)
+							  'failure ;; can't proceed
+							  ))))))
+	  (else status))))
+
 
 (define-class <get-goal> (<goal>)
   (target #:accessor target #:init-keyword #:target))
@@ -140,4 +166,41 @@
 		 'progressed))
 	  ('failure
 	   'success)
+	  (else status))))
+
+(define-class <kill-meta-goal> (<goal>)
+  (priority #:init-value 25 #:accessor priority #:init-keyword #:priority)
+  (type #:accessor type #:init-keyword #:type))
+
+(define-method (do-goal (g <kill-meta-goal>))
+  (let ((objects (sort (filter (lambda (x) (and (not (eq? (owner g) x)) (is-a? x (type g)))) (seen-entities (owner g)))
+					   (lambda (a b) (< (distance a (owner g))
+										(distance b (owner g)))))))
+	(if (null? objects)
+		'cant-do
+		(begin
+		  (add-goal! (owner g) (make <kill-goal> #:target (car objects) #:priority (1+ (priority g))))
+		  'progressed))))
+
+(define-class <kill-goal> (<goal>)
+  (target #:accessor target #:init-keyword #:target))
+
+(define-method (do-goal (g <kill-goal>))
+  (let ((status (next-method)))
+	(case status
+	  ('success (let ((e (owner g))
+					  (i (target g)))
+				  (if (member i (entities m)) ;; Make sure the item is still on the map
+					  (if (equal? (position i) (position e))
+						  (begin
+							(set! (health i) (- (health i) (rand-int 5)))
+							(if (< (health i) 0)
+								(begin
+								  (rem! m i)
+								  'success)
+								'progressed))
+						  (begin ;; The item moved!
+							(set! (prerequisites g) (list (make <follow-goal> #:target i #:owner (owner g))))
+							'progressed))
+					  'failure)))
 	  (else status))))

@@ -13,8 +13,10 @@
 (define m (make <cave-map> #:w 80 #:h 60))
 
 (for-each (lambda (x) (add! m (make <person> #:pos (random-free-spot m) #:name (string-append "Guy " (number->string x))
-									#:sight (+ 5 (rand-int 5)))))
-		  (iota 10))
+									#:sight (+ 5 (rand-int 5))))) (iota 10))
+
+(for-each (lambda (x) (add! m (make <monster> #:pos (random-free-spot m) #:name (string-append "Monster " (number->string x))
+									#:sight (+ 5 (rand-int 5))))) (iota 10))
 
 (for-each (lambda (x) (add! m (make <item> #:pos (random-free-spot m) #:name (string-append "Item " (number->string x))))) (iota 100))
 
@@ -22,9 +24,18 @@
 (for-each (lambda (e)
 			(add-goal! e (make <wander-goal>))
 			(add-goal! e (make <explore-goal>))
+			(add-goal! e (make <kill-meta-goal> #:type <bad-guy>))
 			(add-goal! e (make <collect-goal> #:type <item>))
 			)
-		  (filter (lambda (x) (is-a? x <has-goals>)) (entities m)))
+		  (filter (lambda (x) (is-a? x <person>)) (entities m)))
+
+(for-each (lambda (e)
+			(add-goal! e (make <wander-goal>))
+			(add-goal! e (make <explore-goal>))
+			(add-goal! e (make <kill-meta-goal> #:type <good-guy>))
+			(add-goal! e (make <collect-goal> #:type <item>))
+			)
+		  (filter (lambda (x) (is-a? x <monster>)) (entities m)))
 
 (define cam (make <camera> #:w 80 #:h 60 #:map (seen-map player)))
 (add-overlay! cam 'fov (fov-overlay-single cam player))

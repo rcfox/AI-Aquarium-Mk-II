@@ -72,7 +72,7 @@
   (seen-space e))
 
 (define-class <living> (<entity>)
-  (health #:init-value 0 #:accessor health #:init-keyword #:health))
+  (health #:init-value 100 #:accessor health #:init-keyword #:health))
 
 (define-class <has-goals> (<entity>)
   (goals #:init-value '() #:accessor goals))
@@ -86,8 +86,14 @@
 (define-method (rem! (e <has-inventory>) (i <entity>))
   (set! (inventory e) (delq i (inventory e))))
 
-(define-class <person> (<living> <can-move> <can-see> <has-goals> <has-inventory>)
-  (appearance #:init-value (make <map-element> #:r #\@ #:f '(255 0 0)) #:accessor appearance #:init-keyword #:appearance))
+(define-class <good-guy> (<entity>))
+(define-class <bad-guy> (<entity>))
+
+(define-class <person> (<living> <can-move> <can-see> <has-goals> <has-inventory> <good-guy>)
+  (appearance #:init-value (make <map-element> #:r #\@ #:f '(0 0 255)) #:accessor appearance #:init-keyword #:appearance))
+
+(define-class <monster> (<living> <can-move> <can-see> <has-goals> <has-inventory> <bad-guy>)
+  (appearance #:init-value (make <map-element> #:r #\M #:f '(255 0 0)) #:accessor appearance #:init-keyword #:appearance))
 
 (define-class <item> (<entity>)
   (appearance #:init-value (make <map-element> #:r #\$ #:f '(0 255 0)) #:accessor appearance #:init-keyword #:appearance))
