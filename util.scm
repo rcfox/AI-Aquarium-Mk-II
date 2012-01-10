@@ -5,3 +5,5 @@
 
 (define rand-int (random-source-make-integers random-source))
 (define rand-float (random-source-make-reals random-source))
+
+(define list->pair (lambda (l) (cons (car l) (cadr l))))

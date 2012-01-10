@@ -16,13 +16,13 @@
 									#:sight (+ 5 (rand-int 5)))))
 		  (iota 10))
 
-(for-each (lambda (x) (add! m (make <item> #:pos (random-free-spot m) #:name (string-append "Item " (number->string x)))))
-		  (iota 100))
+(for-each (lambda (x) (add! m (make <item> #:pos (random-free-spot m) #:name (string-append "Item " (number->string x))))) (iota 100))
 
 (define player (car (filter (lambda (x) (is-a? x <person>)) (entities m))))
 (for-each (lambda (e)
-			(push-goal! e (make <wander-goal>))
-			(push-goal! e (make <collect-goal> #:type <item>))
+			(add-goal! e (make <wander-goal>))
+			(add-goal! e (make <explore-goal>))
+			(add-goal! e (make <collect-goal> #:type <item>))
 			)
 		  (filter (lambda (x) (is-a? x <has-goals>)) (entities m)))
 

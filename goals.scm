@@ -2,40 +2,49 @@
 
 (define-class <goal> ()
   (name #:init-value "Goal" #:accessor name #:init-keyword #:name)
-  (owner #:accessor owner)
-  (prerequisites #:init-value '() #:accessor prerequisites #:init-keyword #:prereq))
+  (owner #:accessor owner #:init-keyword #:owner)
+  (priority #:init-value 0 #:accessor priority #:init-keyword #:priority)
+  (prerequisites #:init-value '() #:accessor prerequisites #:init-keyword #:prereq)
+  (success-hook #:init-form (make-hook 1) #:accessor success-hook)
+  (failure-hook #:init-form (make-hook 1) #:accessor failure-hook))
 
-(define-method (push-goal! (e <has-goals>) (g <goal>))
-  (set! (goals e) (cons g (goals e)))
+(define-method (add-goal! (e <has-goals>) (g <goal>))
   (set! (owner g) e)
+  (set! (goals e) (merge (goals e) (list g) (lambda (a b) (> (priority a) (priority b)))))
   (for-each (lambda (x) (set! (owner x) e)) (prerequisites g)))
 
-(define-method (pop-goal! (e <has-goals>))
-  (let ((head (car (goals e))))
-	(set! (goals e) (cdr (goals e)))
-	head))
+(define-method (remove-goal! (e <has-goals>) (g <goal>))
+  (set! (goals e) (remove (lambda (x) (eq? g x)) (goals e)))
+  g)
 
 (define-method (do-goal (e <has-goals>))
   (if (not (null? (goals e)))
-	  (let ((status (do-goal (car (goals e)))))
-		(case status
-			  ('cant-do (begin  ;; Do the next goal instead
-						  (let ((top-goal (pop-goal! e)))
-							(do-goal e)
-							(push-goal! e top-goal))))
-			  ('progressed '())
-			  ('success (pop-goal! e))
-			  ('failure (pop-goal! e))))))
+	  (do-goal e (goals e))))
+
+(define-method (do-goal (e <has-goals>) (goal-list <list>))
+  (let ((g (car goal-list)))
+	(case (do-goal g)
+	  ('cant-do
+	   (do-goal e (cdr goal-list))) ;; try the next goal
+	  ('progressed '())
+	  ('success
+	   (remove-goal! e g)
+	   (run-hook (success-hook g) g))
+	  ('failure
+	   (remove-goal! e g)
+	   (run-hook (failure-hook g) g)))))
 
 (define-method (do-goal (g <goal>))
-  (let ((statuses (map do-goal (prerequisites g))))
+  (let ((statuses (map do-goal (prerequisites g)))) ;; TODO: this will perform all sub-goals, which isn't the intention...
 	(if (null? statuses)
-		'success
+		'success ;; there were no prerequisites
 		(cond
 		 ((every (lambda (x) (eq? 'success x)) statuses)
 		  'success)
 		 ((any (lambda (x) (eq? 'failure x)) statuses)
 		  'failure)
+		 ((any (lambda (x) (eq? 'progressed x)) statuses)
+		  'progressed)
 		 (#t 'cant-do)))))
 
 (define-class <move-goal> (<goal>)
@@ -72,21 +81,22 @@
 	(case status
 	  ('success	(let ((e (owner g))
 					  (i (target g)))
-				  (if (find (lambda (x) (eq? x i)) (entities m)) ;; Make sure the item is still on the map
+				  (if (member i (entities m)) ;; Make sure the item is still on the map
 					  (if (equal? (position i) (position e))
 						  (begin
 							(add! e i)
 							(rem! m i)
 							'success)
 						  (begin ;; The item moved!
-							(push-goal! e (make <move-goal> #:coords (position i)))
+							(set! (prerequisites g) (list (make <move-goal> #:coords (position i))))
 							'progressed))
 					  'failure)))
 	  (else status))))
 
 (define-class <collect-goal> (<goal>)
   (type #:accessor type #:init-keyword #:type)
-  (count #:accessor count #:init-value -1 #:init-keyword #:count))
+  (count #:accessor count #:init-value -1 #:init-keyword #:count)
+  (priority #:init-value 10 #:accessor priority #:init-keyword #:priority))
 
 (define-method (do-goal (g <collect-goal>))
   ;; Sort so that we pick the next closest object
@@ -101,14 +111,33 @@
 			  (begin
 				(if (> (count g) 0)
 					(set! (count g) (1- (count g))))
-				(push-goal! (owner g) (make <get-goal> #:target (car objects)))
+				(add-goal! (owner g) (make <get-goal> #:target (car objects) #:priority (1+ (priority g))))
 				'progressed))))))
 
-(define-class <wander-goal> (<goal>))
+(define-class <wander-goal> (<goal>)
+  (priority #:init-value -10 #:accessor priority #:init-keyword #:priority))
 
 (define-method (do-goal (g <wander-goal>))
   (let ((target (find (lambda (x) (> (/ 1 (length (seen-space (owner g)))) (rand-float))) (seen-space (owner g)))))
-	(if target
-		(push-goal! (owner g) (make <move-goal> #:coords target))
-		(push-goal! (owner g) (make <move-goal> #:coords (car (seen-space (owner g)))))))
+	(if (not target)
+		(set! target (car (seen-space (owner g)))))
+	(add-goal! (owner g) (make <move-goal> #:coords target #:priority (1+ (priority g)))))
   'progressed)
+
+(define-class <explore-goal> (<goal>)
+  (priority #:init-value -5 #:accessor priority #:init-keyword #:priority))
+
+(define-method (do-goal (g <explore-goal>))
+  (let ((status (next-method)))
+	(case status
+	  ('success
+	   (let ((target (find
+					  (lambda (x) (eq? (representation (get-data (seen-map (owner g)) (car x) (cadr x))) #\ ))
+					  (sort (cartesian-product (iota (width m)) (iota (height m)))
+							(lambda (a b) (< (distance (list->pair a) (position (owner g)))
+											 (distance (list->pair b) (position (owner g)))))))))
+		 (set! (prerequisites g) (list (make <move-goal> #:coords (list->pair target) #:owner (owner g))))
+		 'progressed))
+	  ('failure
+	   'success)
+	  (else status))))
