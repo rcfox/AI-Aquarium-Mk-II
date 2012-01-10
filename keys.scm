@@ -38,23 +38,3 @@
 									 (remove-overlay! camera 'path)
 									 (add-overlay! camera 'path (path-overlay camera))))
 							   cameras)))
-
-;; (add-key-hook! "w" (lambda ()
-;; 					 (let ((e (car entities)))
-;; 					   (push-goal! e (move-goal e (cons (entity-x e) (1- (entity-y e))))))))
-
-;; (add-key-hook! "s" (lambda ()
-;; 					 (let ((e (car entities)))
-;; 					   (push-goal! e (move-goal e (cons (entity-x e) (1+ (entity-y e))))))))
-
-;; (add-key-hook! "a" (lambda ()
-;; 					 (let ((e (car entities)))
-;; 					   (push-goal! e (move-goal e (cons (1- (entity-x e)) (entity-y e)))))))
-
-;; (add-key-hook! "d" (lambda ()
-;; 					 (let ((e (car entities)))
-;; 					   (push-goal! e (move-goal e (cons (1+ (entity-x e)) (entity-y e)))))))
-
-;; (add-key-hook! "r" (lambda ()
-;; 					 (let ((e (car entities)))
-;; 					   (push-goal! e (move-goal e (map-random-free-spot m))))))
