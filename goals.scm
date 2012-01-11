@@ -17,6 +17,15 @@
   (set! (goals e) (remove (lambda (x) (eq? g x)) (goals e)))
   g)
 
+(define-method (add-goal! (g <goal>) (subgoal <goal>))
+  (set! (owner subgoal) (owner g))
+  (set! (prerequisites g) (merge (prerequisites g) (list subgoal) (lambda (a b) (> (priority a) (priority b)))))
+  (for-each (lambda (x) (set! (owner x) (owner g))) (prerequisites subgoal)))
+
+(define-method (remove-goal! (g <goal>) (subgoal <goal>))
+  (set! (prerequisites g) (remove (lambda (x) (eq? subgoal x)) (prerequisites g)))
+  subgoal)
+
 (define-method (do-goal (e <has-goals>))
   (if (not (null? (goals e)))
 	  (do-goal e (goals e))))
@@ -98,10 +107,6 @@
 (define-class <get-goal> (<goal>)
   (target #:accessor target #:init-keyword #:target))
 
-(define-method (initialize (g <get-goal>) initargs)
-  (next-method)
-  (set! (prerequisites g) (cons (make <move-goal> #:coords (position (target g))) (prerequisites g))))
-
 (define-method (do-goal (g <get-goal>))
   (let ((status (next-method)))
 	(case status
@@ -113,8 +118,8 @@
 							(add! e i)
 							(rem! m i)
 							'success)
-						  (begin ;; The item moved!
-							(set! (prerequisites g) (list (make <move-goal> #:coords (position i))))
+						  (begin
+							(add-goal! g (make <move-goal> #:coords (position i)))
 							'progressed))
 					  'failure)))
 	  (else status))))
@@ -144,7 +149,7 @@
   (priority #:init-value -10 #:accessor priority #:init-keyword #:priority))
 
 (define-method (do-goal (g <wander-goal>))
-  (let ((target (find (lambda (x) (> (/ 1 (length (seen-space (owner g)))) (rand-float))) (seen-space (owner g)))))
+  (let ((target (random-element (filter (lambda (p) (walkable (get-data m p))) (seen-space (owner g))))))
 	(if (not target)
 		(set! target (car (seen-space (owner g)))))
 	(add-goal! (owner g) (make <move-goal> #:coords target #:priority (1+ (priority g)))))
@@ -162,7 +167,8 @@
 					  (sort (cartesian-product (iota (width m)) (iota (height m)))
 							(lambda (a b) (< (distance (list->pair a) (position (owner g)))
 											 (distance (list->pair b) (position (owner g)))))))))
-		 (set! (prerequisites g) (list (make <move-goal> #:coords (list->pair target) #:owner (owner g))))
+		 (set! (prerequisites g) '())
+		 (add-goal! g (make <move-goal> #:coords (list->pair target)))
 		 'progressed))
 	  ('failure
 	   'success)
@@ -193,14 +199,12 @@
 				  (if (member i (entities m)) ;; Make sure the item is still on the map
 					  (if (equal? (position i) (position e))
 						  (begin
-							(set! (health i) (- (health i) (rand-int 5)))
-							(if (< (health i) 0)
-								(begin
-								  (rem! m i)
-								  'success)
+							(if (damage i (rand-int 5))
+								'success
 								'progressed))
 						  (begin ;; The item moved!
-							(set! (prerequisites g) (list (make <follow-goal> #:target i #:owner (owner g))))
+							(set! (prerequisites g) '())
+							(add-goal! g (make <follow-goal> #:target i))
 							'progressed))
 					  'failure)))
 	  (else status))))
