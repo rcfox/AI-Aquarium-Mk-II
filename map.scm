@@ -1,6 +1,5 @@
 (use-modules (oop goops)
-			 (srfi srfi-1)
-			 (srfi srfi-26))
+			 (srfi srfi-1))
 
 (define-class <map-element> ()
   (representation #:init-value #\. #:accessor representation #:init-keyword #:r)
@@ -92,14 +91,6 @@
   (next-method)
   (randomize-map m)
   (create-box m 1 1 (1- (width m)) (1- (height m)) <wall>))
-
-;; Stolen from cky
-(define (cartesian-product first . rest)
-  (define (iter l result)
-    (define (prepend-all x)
-      (map (cut cons <> x) l))
-    (concatenate (map prepend-all result)))
-  (map reverse (fold iter (map list first) rest)))
 
 (define-method (randomize-map (m <cave-map>))
   (let ((prob 0.59))
