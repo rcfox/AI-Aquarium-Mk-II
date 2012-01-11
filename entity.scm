@@ -22,6 +22,9 @@
 (define-method (rem! (m <map>) (e <entity>))
   (set! (entities m) (delq e (entities m))))
 
+(define-method (die (e <entity>))
+  (rem! m e))
+
 (define-method (distance (e1 <entity>) (e2 <entity>))
   (distance (position e1) (position e2)))
 
@@ -74,11 +77,27 @@
 (define-class <living> (<entity>)
   (health #:init-value 100 #:accessor health #:init-keyword #:health))
 
+(define-method (damage (e <living>) points)
+  (set! (health e) (- (health e) points))
+  (if (<= (health e) 0)
+	  (begin
+		(die e)
+		#t)
+	  #f))
+
 (define-class <has-goals> (<entity>)
   (goals #:init-value '() #:accessor goals))
 
 (define-class <has-inventory> (<entity>)
   (inventory #:init-value '() #:accessor inventory))
+
+(define-method (die (e <has-inventory>))
+  (for-each (lambda (i)
+			  (set! (position i) (random-element (filter (lambda (p) (walkable (get-data m p))) (seen-space e))))
+			  (add! m i)
+			  (rem! e i))
+			(inventory e))
+  (next-method))
 
 (define-method (add! (e <has-inventory>) (i <entity>))
   (set! (inventory e) (cons i (inventory e))))
