@@ -9,17 +9,21 @@
 			#:slot-ref (lambda (o)
 						 (cons (x o) (y o)))
 			#:slot-set! (lambda (o p)
+						  (remove! (quadtree m) (position o) o)
 						  (set! (x o) (car p))
 						  (set! (y o) (cdr p))
+						  (insert! (quadtree m) (position o) o)
 						  (run-hook (moved-hook o) o))
 			#:init-keyword #:pos)
   (name #:init-value "Entity" #:accessor name #:init-keyword #:name)
   (appearance #:init-value (make <map-element> #:r #\? #:f '(255 255 255)) #:accessor appearance #:init-keyword #:appearance))
 
 (define-method (add! (m <map>) (e <entity>))
-  (set! (entities m) (cons e (entities m))))
+  (set! (entities m) (cons e (entities m)))
+  (insert! (quadtree m) (position e) e))
 
 (define-method (rem! (m <map>) (e <entity>))
+  (remove! (quadtree m) (position e) e)
   (set! (entities m) (delq e (entities m))))
 
 (define-method (die (e <entity>))
@@ -68,9 +72,7 @@
 			  (set-data! (seen-map e) x (get-data m x)))
 			(seen-space e))
   (set! (seen-entities e) (append-map (lambda (x)
-										(partition (lambda (e)
-													 (equal? (position e) x))
-												   (entities m)))
+										(search (quadtree m) x))
 									  (seen-space e)))
   (seen-space e))
 

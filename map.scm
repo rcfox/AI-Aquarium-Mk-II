@@ -1,5 +1,6 @@
 (use-modules (oop goops)
-			 (srfi srfi-1))
+			 (srfi srfi-1)
+			 (tree quadtree))
 
 (define-class <map-element> ()
   (representation #:init-value #\. #:accessor representation #:init-keyword #:r)
@@ -18,12 +19,14 @@
   (h #:init-value 0 #:getter height #:init-keyword #:h)
   (data #:accessor data)
   (libtcod-data #:accessor libtcod-data)
-  (entities #:init-value '() #:accessor entities))
+  (entities #:init-value '() #:accessor entities)
+  (quadtree #:accessor quadtree))
 
 (define-method (initialize (m <map>) initargs)
   (next-method)
   (set! (data m) (make-array <empty> (width m) (height m)))
-  (set! (libtcod-data m) (make-libtcod-map (width m) (height m) #t #t)))
+  (set! (libtcod-data m) (make-libtcod-map (width m) (height m) #t #t))
+  (set! (quadtree m) (make <quadtree> #:size (width m))))
 
 (define-method (set-data! (m <map>) x y (d <map-element>))
   (array-set! (data m) d x y)
