@@ -26,7 +26,7 @@
   (next-method)
   (set! (data m) (make-array <empty> (width m) (height m)))
   (set! (libtcod-data m) (make-libtcod-map (width m) (height m) #t #t))
-  (set! (quadtree m) (make <quadtree> #:size (width m))))
+  (set! (quadtree m) (make-quadtree #:size (width m))))
 
 (define-method (set-data! (m <map>) x y (d <map-element>))
   (array-set! (data m) d x y)
