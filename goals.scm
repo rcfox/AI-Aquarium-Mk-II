@@ -42,8 +42,7 @@
 	   (run-hook (success-hook g) g))
 	  ('failure
 	   (remove-goal! e g)
-	   (run-hook (failure-hook g) g)))
-	(cons g status)))
+	   (run-hook (failure-hook g) g)))))
 
 (define-method (do-goal (g <goal>))
   (let ((statuses (map do-goal (prerequisites g)))) ;; TODO: this will perform all sub-goals, which isn't the intention...
@@ -207,4 +206,29 @@
 							(add-goal! g (make <follow-goal> #:target i))
 							'progressed))
 					  'failure)))
+	  (else status))))
+
+(define-class <mine-goal> (<goal>)
+  (priority #:init-value 9 #:accessor priority #:init-keyword #:priority)
+  (target #:accessor target #:init-keyword #:target))
+
+(define-method (do-goal (g <mine-goal>))
+  (let ((status (next-method)))
+	(case status
+	  ('success
+	   (let ((objects (sort (filter (lambda (x) (eq? (get-data m x) <wall>)) (seen-space (owner g)))
+							(lambda (a b) (< (distance a (position (owner g)))
+											 (distance b (position (owner g))))))))
+		 (if (null? objects)
+			 'cant-do
+			 (begin
+			   (set! (target g) (car objects))
+			   (add-goal! g (make <move-goal> #:coords (car objects)))
+			   'progressed))))
+	  ('failure
+	   (if (< (distance (target g) (position (owner g))) 2)
+		   (begin
+			 (set-data! m (target g) <floor>)
+			 'success)
+		   'failure))
 	  (else status))))

@@ -43,7 +43,13 @@
 			   #:slot-ref (lambda (e)
 							(libtcod-path-destination (path e)))
 			   #:slot-set! (lambda (e p)
-							 (libtcod-path-compute (path e) (position e) p))))
+							 (let* ((point (get-data m p))
+									(can-walk (walkable point))
+									(transp (transparent point)))
+							   ;; Temporarily set the square as walkable so that the pathfinder won't give up immediately.
+							   (libtcod-map-set! (libtcod-data (seen-map e)) (car p) (cdr p) #t #t)
+							   (libtcod-path-compute (path e) (position e) p)
+							   (libtcod-map-set! (libtcod-data (seen-map e)) (car p) (cdr p) transp can-walk)))))
 
 (define-method (add! (m <map>) (e <can-move>))
   (set! (path e) (make-libtcod-path (libtcod-data m)))
