@@ -5,18 +5,19 @@
 (load "util.scm")
 (load "map.scm")
 (load "entity.scm")
+(load "item.scm")
 (load "goals.scm")
 (load "camera.scm")
 (load "overlays.scm")
 (load "keys.scm")
 
-(define m (make <cave-map> #:w 128 #:h 128))
+(define m (make <cave-map> #:w 64 #:h 64))
 
 (for-each (lambda (x) (add! m (make <person> #:pos (random-free-spot m) #:name (string-append "Guy " (number->string x))
 									#:sight (+ 5 (rand-int 5))))) (iota 10))
 
 (for-each (lambda (x) (add! m (make <monster> #:pos (random-free-spot m) #:name (string-append "Monster " (number->string x))
-									#:sight (+ 5 (rand-int 5))))) (iota 10))
+									#:sight (+ 5 (rand-int 5)) #:health 10))) (iota 10))
 
 (for-each (lambda (x) (add! m (make <item> #:pos (random-free-spot m) #:name (string-append "Item " (number->string x))))) (iota 100))
 
@@ -24,6 +25,7 @@
 (for-each (lambda (e)
 			(add-goal! e (make <wander-goal>))
 			(add-goal! e (make <explore-goal>))
+			(for-each (lambda (x) (add-goal! e (make <mine-goal>))) (iota 100))
 			(add-goal! e (make <kill-meta-goal> #:type <bad-guy>))
 			(add-goal! e (make <collect-goal> #:type <item>))
 			)

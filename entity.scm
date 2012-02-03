@@ -125,6 +125,3 @@
 
 (define-class <monster> (<living> <can-move> <can-see> <has-goals> <has-inventory> <bad-guy>)
   (appearance #:init-value (make <map-element> #:r #\M #:f '(255 0 0)) #:accessor appearance #:init-keyword #:appearance))
-
-(define-class <item> (<entity>)
-  (appearance #:init-value (make <map-element> #:r #\$ #:f '(0 255 0)) #:accessor appearance #:init-keyword #:appearance))
