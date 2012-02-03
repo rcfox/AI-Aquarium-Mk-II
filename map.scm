@@ -41,6 +41,23 @@
 (define-method (get-data (m <map>) (p <pair>))
   (get-data m (car p) (cdr p)))
 
+(define-method (set-properties! (m <map>) (p <pair>))
+  (let* ((terrain (get-data m p))
+		 (l (cons terrain (quadtree-search (quadtree m) p)))
+		 (w (every walkable l))
+		 (t (every transparent l)))
+	(libtcod-map-set! (libtcod-data m) (car p) (cdr p) t w)))
+
+(define-method (get-properties (m <map>) (p <pair>))
+  (get-properties m p (quadtree m)))
+
+(define-method (get-properties (m <map>) (p <pair>) q)
+  (let* ((terrain (get-data m p))
+		 (l (cons terrain (quadtree-search q p)))
+		 (w (every walkable l))
+		 (t (every transparent l)))
+	(cons w t)))
+
 (define-method (for-each-map (m <map>) proc)
   (for-each-map
    m

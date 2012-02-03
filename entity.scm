@@ -9,11 +9,13 @@
 
 (define-method (add! (m <map>) (e <entity>))
   (set! (entities m) (cons e (entities m)))
-  (quadtree-insert! (quadtree m) (position e) e))
+  (quadtree-insert! (quadtree m) (position e) e)
+  (set-properties! m (position e)))
 
 (define-method (rem! (m <map>) (e <entity>))
   (quadtree-remove! (quadtree m) (position e) e)
-  (set! (entities m) (delq e (entities m))))
+  (set! (entities m) (delq e (entities m)))
+  (set-properties! m (position e)))
 
 (define-method (die (e <entity>))
   (rem! m e))
@@ -27,8 +29,10 @@
 (define-method (move! (e <entity>) (p <pair>))
   (let ((region (quadtree-get-region (quadtree m) (position e) p)))
 	(quadtree-remove! region (position e) e)
+	(set-properties! m (position e))
 	(set! (position e) p)
-	(quadtree-insert! region p e)))
+	(quadtree-insert! region p e)
+	(set-properties! m (position e))))
 
 (define-class <can-move> (<entity>)
   (moved-hook #:init-form (make-hook 1) #:accessor moved-hook)
@@ -86,7 +90,9 @@
   (seen-space e))
 
 (define-class <living> (<entity>)
-  (health #:init-value 100 #:accessor health #:init-keyword #:health))
+  (health #:init-value 100 #:accessor health #:init-keyword #:health)
+  (walkable #:init-value #f #:accessor walkable #:init-keyword #:walkable)
+  (transparent #:init-value #t #:accessor transparent #:init-keyword #:transparent))
 
 (define-method (damage (e <living>) points)
   (set! (health e) (- (health e) points))

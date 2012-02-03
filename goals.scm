@@ -80,14 +80,15 @@
 	  (else status))))
 
 (define-class <follow-goal> (<goal>)
-  (target #:accessor target #:init-keyword #:target))
+  (target #:accessor target #:init-keyword #:target)
+  (max-distance #:init-value 1 #:accessor max-distance #:init-keyword #:max-dist))
 
 (define-method (do-goal (g <follow-goal>))
   (let ((status (next-method)))
 	(case status
 	  ('success (let ((e (owner g))
 					  (t (target g)))
-				  (if (equal? (position t) (position e))
+				  (if (<= (distance (position t) (position e)) (max-distance g))
 					  'success
 					  (begin
 						;; Reset the destination if this goal got interrupted
@@ -196,14 +197,14 @@
 	  ('success (let ((e (owner g))
 					  (i (target g)))
 				  (if (member i (entities m)) ;; Make sure the item is still on the map
-					  (if (equal? (position i) (position e))
+					  (if (< (distance (position i) (position e)) 2)
 						  (begin
 							(if (damage i (rand-int 5))
 								'success
 								'progressed))
 						  (begin ;; The item moved!
 							(set! (prerequisites g) '())
-							(add-goal! g (make <follow-goal> #:target i))
+							(add-goal! g (make <follow-goal> #:target i #:max-dist 1.5))
 							'progressed))
 					  'failure)))
 	  (else status))))
