@@ -73,7 +73,7 @@
 						(let ((step (walk-path e)))
 						  (if step
 							  (begin
-								(set! (position e) step)
+								(move! e step)
 								'progressed)
 							  'failure ;; can't proceed
 							  ))))))
@@ -96,7 +96,7 @@
 						(let ((step (walk-path e)))
 						  (if step
 							  (begin
-								(set! (position e) step)
+								(move! e step)
 								'progressed)
 							  'failure ;; can't proceed
 							  ))))))

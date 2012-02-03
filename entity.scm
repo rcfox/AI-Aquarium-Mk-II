@@ -1,23 +1,11 @@
 (use-modules (oop goops))
 
 (define-class <entity> ()
-  (moved-hook #:init-form (make-hook 1) #:accessor moved-hook)
-  (x #:init-value 0 #:accessor x #:init-keyword #:x)
-  (y #:init-value 0 #:accessor y #:init-keyword #:y)
-  (position #:accessor position
-			#:allocation #:virtual
-			#:slot-ref (lambda (o)
-						 (cons (x o) (y o)))
-			#:slot-set! (lambda (o p)
-						  (let ((region (quadtree-get-region (quadtree m) (position o) p)))
-							(quadtree-remove! region (position o) o)
-							(set! (x o) (car p))
-							(set! (y o) (cdr p))
-							(quadtree-insert! region (position o) o)
-							(run-hook (moved-hook o) o)))
-			#:init-keyword #:pos)
+  (position #:accessor position #:init-keyword #:pos)
   (name #:init-value "Entity" #:accessor name #:init-keyword #:name)
-  (appearance #:init-value (make <map-element> #:r #\? #:f '(255 255 255)) #:accessor appearance #:init-keyword #:appearance))
+  (appearance #:init-value (make <map-element> #:r #\? #:f '(255 255 255)) #:accessor appearance #:init-keyword #:appearance)
+  (walkable #:init-value #t #:accessor walkable #:init-keyword #:walkable)
+  (transparent #:init-value #t #:accessor transparent #:init-keyword #:transparent))
 
 (define-method (add! (m <map>) (e <entity>))
   (set! (entities m) (cons e (entities m)))
@@ -36,7 +24,14 @@
 (define-method (distance (p1 <pair>) (p2 <pair>))
   (sqrt (+ (expt (- (car p1) (car p2)) 2) (expt (- (cdr p1) (cdr p2)) 2))))
 
+(define-method (move! (e <entity>) (p <pair>))
+  (let ((region (quadtree-get-region (quadtree m) (position e) p)))
+	(quadtree-remove! region (position e) e)
+	(set! (position e) p)
+	(quadtree-insert! region p e)))
+
 (define-class <can-move> (<entity>)
+  (moved-hook #:init-form (make-hook 1) #:accessor moved-hook)
   (path #:accessor path)
   (destination #:accessor destination
 			   #:allocation #:virtual
@@ -54,6 +49,10 @@
 (define-method (add! (m <map>) (e <can-move>))
   (set! (path e) (make-libtcod-path (libtcod-data m)))
   (next-method))
+
+(define-method (move! (e <can-move>) (p <pair>))
+  (next-method)
+  (run-hook (moved-hook e) e))
 
 (define-method (walk-path (e <can-move>))
   (libtcod-path-walk (path e) #t))
@@ -105,9 +104,9 @@
 
 (define-method (die (e <has-inventory>))
   (for-each (lambda (i)
-			  (set! (position i) (random-element (filter (lambda (p) (walkable (get-data m p))) (seen-space e))))
 			  (add! m i)
-			  (rem! e i))
+			  (rem! e i)
+			  (move! i (random-element (filter (lambda (p) (walkable (get-data m p))) (seen-space e)))))
 			(inventory e))
   (next-method))
 
