@@ -12,6 +12,7 @@
 
 (define <empty> (make <map-element> #:r #\ #:walkable #t #:transparent #t))
 (define <wall> (make <map-element> #:r #\# #:f '(150 150 150) #:walkable #f #:transparent #f #:cost 99999))
+(define <unmineable-wall> (make <map-element> #:r #\# #:f '(150 150 150) #:walkable #f #:transparent #f #:cost 99999))
 (define <floor> (make <map-element> #:r #\. #:f '(0 50 0) #:walkable #t #:transparent #t))
 
 (define-class <map> ()
@@ -111,7 +112,7 @@
 (define-method (initialize (m <cave-map>) initargs)
   (next-method)
   (randomize-map m)
-  (create-box m 1 1 (1- (width m)) (1- (height m)) <wall>))
+  (create-box m 1 1 (1- (width m)) (1- (height m)) <unmineable-wall>))
 
 (define-method (randomize-map (m <cave-map>))
   (let ((prob 0.59))
