@@ -58,37 +58,38 @@
 		 (t (every transparent l)))
 	(cons w t)))
 
-(define-method (for-each-map (m <map>) proc)
-  (for-each-map
+(define-method (map->list (m <map>) proc)
+  (map->list
    m
    proc
    (iota (car (array-dimensions (data m))))
    (iota (cadr (array-dimensions (data m))))))
 
-(define-method (for-each-map (m <map>) proc (x-list <list>) (y-list <list>))
-  (for-each (lambda (y)
-			  (for-each (lambda (x)
-						  (if (in-bounds? m x y)
-							  (proc x y (array-ref (data m) x y))))
-						x-list))
-			y-list))
+(define-method (map->list (m <map>) proc (x-list <list>) (y-list <list>))
+  (fold append '()
+		(map (lambda (y)
+			   (map (lambda (x)
+					  (proc x y (array-ref (data m) x y)))
+					(filter (lambda (x) (in-bounds? m x y))
+							x-list)))
+			 y-list)))
 
 (define-method (in-bounds? (m <map>) x y)
   (and (and (> x 0) (> y 0))
 	   (and (< x (1- (width m))) (< y (1- (height m))))))
 
 (define-method (create-box (m <map>) x y w h (t <map-element>))
-  (for-each-map m (lambda (a b c) (set-data! m a b t)) (iota w x 1) (map (lambda (z) y) (iota w)))
-  (for-each-map m (lambda (a b c) (set-data! m a b t)) (iota w x 1) (map (lambda (z) (1- h)) (iota w)))
-  (for-each-map m (lambda (a b c) (set-data! m a b t)) (map (lambda (z) x) (iota h)) (iota h y 1))
-  (for-each-map m (lambda (a b c) (set-data! m a b t)) (map (lambda (z) (1- w)) (iota h)) (iota h y 1)))
+  (map->list m (lambda (a b c) (set-data! m a b t)) (iota w x 1) (map (lambda (z) y) (iota w)))
+  (map->list m (lambda (a b c) (set-data! m a b t)) (iota w x 1) (map (lambda (z) (1- h)) (iota w)))
+  (map->list m (lambda (a b c) (set-data! m a b t)) (map (lambda (z) x) (iota h)) (iota h y 1))
+  (map->list m (lambda (a b c) (set-data! m a b t)) (map (lambda (z) (1- w)) (iota h)) (iota h y 1)))
 
 (define-method (draw (m <map>))
-  (for-each-map m (lambda (x y tile)
+  (map->list m (lambda (x y tile)
 					(draw-character x y (representation tile) (fore-colour tile) (back-colour tile)))))
 
 (define-method (draw (m <map>) (x-list <list>) (y-list <list>) x-offset y-offset)
-  (for-each-map m (lambda (x y tile)
+  (map->list m (lambda (x y tile)
 					(draw-character (- x x-offset) (- y y-offset) (representation tile) (fore-colour tile) (back-colour tile)))
 				x-list y-list))
 
@@ -114,13 +115,13 @@
 
 (define-method (randomize-map (m <cave-map>))
   (let ((prob 0.59))
-	(for-each-map m (lambda (x y tile)
+	(map->list m (lambda (x y tile)
 					  (if (> (rand-float) prob)
 						  (begin
 							(set-data! m x y <wall>))
 						  (set-data! m x y <floor>)))))
   (for-each (lambda (a)
-			  (for-each-map m (lambda (x y tile)
+			  (map->list m (lambda (x y tile)
 								(if (in-bounds? m x y)
 									(let ((neighbours (count (lambda (x)
 															   (eq? x <wall>))
