@@ -233,3 +233,18 @@
 			 'success)
 		   'failure))
 	  (else status))))
+
+(define-class <find-clear-space-goal> (<goal>)
+  (width #:accessor width #:init-keyword #:width)
+  (height #:accessor height #:init-keyword #:height))
+
+(define-method (do-goal (g <find-clear-space-goal>))
+  (define space-clear? (lambda (pos)
+						 (every (lambda (elem) (eq? elem <floor>))
+								(map->list (seen-map (owner g))
+										   (lambda (x y data) data)
+										   (iota (width g) (car pos))
+										   (iota (height g) (cdr pos))))))
+  (if (space-clear? (position (owner g)))
+	  'success
+	  'cant-do))
