@@ -6,7 +6,8 @@
   (priority #:init-value 0 #:accessor priority #:init-keyword #:priority)
   (prerequisites #:init-value '() #:accessor prerequisites #:init-keyword #:prereq)
   (success-hook #:init-form (make-hook 1) #:accessor success-hook)
-  (failure-hook #:init-form (make-hook 1) #:accessor failure-hook))
+  (failure-hook #:init-form (make-hook 1) #:accessor failure-hook)
+  (status #:init-value 'not-started #:accessor status))
 
 (define-method (add-goal! (e <has-goals>) (g <goal>))
   (set! (owner g) e)
@@ -45,7 +46,16 @@
 	   (run-hook (failure-hook g) g)))))
 
 (define-method (do-goal (g <goal>))
-  (let ((statuses (map do-goal (prerequisites g)))) ;; TODO: this will perform all sub-goals, which isn't the intention...
+  (let ((receiver (lambda (exit-loop)
+					(for-each (lambda (p)
+								(if (not (or (eq? (status p) 'success) (eq? (status p) 'failure)))
+									(begin
+									  (set! (status p) (do-goal p))
+									  (if (not (eq? (status p) 'cant-do))
+										  (exit-loop (status p))))))
+							  (prerequisites g)))))
+	(call/cc receiver))
+  (let ((statuses (map status (prerequisites g))))
 	(if (null? statuses)
 		'success ;; there were no prerequisites
 		(cond
@@ -55,6 +65,8 @@
 		  'failure)
 		 ((any (lambda (x) (eq? 'progressed x)) statuses)
 		  'progressed)
+		 ((any (lambda (x) (eq? 'not-started x)) statuses)
+		  'cant-do)
 		 (#t 'cant-do)))))
 
 (define-class <move-goal> (<goal>)
