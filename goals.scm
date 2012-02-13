@@ -11,6 +11,7 @@
 
 (define-method (add-goal! (e <has-goals>) (g <goal>))
   (set! (owner g) e)
+  (init-goal g)
   (set! (goals e) (merge (goals e) (list g) (lambda (a b) (> (priority a) (priority b)))))
   (for-each (lambda (x) (set! (owner x) e)) (prerequisites g)))
 
@@ -20,6 +21,7 @@
 
 (define-method (add-goal! (g <goal>) (subgoal <goal>))
   (set! (owner subgoal) (owner g))
+  (init-goal subgoal)
   (set! (prerequisites g) (merge (prerequisites g) (list subgoal) (lambda (a b) (> (priority a) (priority b)))))
   (for-each (lambda (x) (set! (owner x) (owner g))) (prerequisites subgoal)))
 
@@ -44,6 +46,9 @@
 	  ('failure
 	   (remove-goal! e g)
 	   (run-hook (failure-hook g) g)))))
+
+(define-method (init-goal (g <goal>))
+  #f)
 
 (define-method (do-goal (g <goal>))
   (let ((receiver (lambda (exit-loop)
@@ -247,8 +252,8 @@
 	  (else status))))
 
 (define-class <find-clear-space-goal> (<goal>)
-  (width #:accessor width #:init-keyword #:width)
-  (height #:accessor height #:init-keyword #:height))
+  (width #:accessor width #:init-keyword #:w)
+  (height #:accessor height #:init-keyword #:h))
 
 (define-method (do-goal (g <find-clear-space-goal>))
   (define space-clear? (lambda (pos)
@@ -260,3 +265,65 @@
   (if (space-clear? (position (owner g)))
 	  'success
 	  'cant-do))
+
+(define-class <place-wall-goal> (<goal>)
+  (coordinates #:accessor coordinates #:init-keyword #:coords))
+
+(define-method (init-goal (g <place-wall-goal>))
+  (add-goal! g (make <move-goal> #:coords (coordinates g))))
+
+(define-method (do-goal (g <place-wall-goal>))
+  (let ((status (next-method)))
+	(case status
+	  ('success
+	   (if (eq? (get-data m (coordinates g)) <unmineable-wall>)
+		   'success
+		   (begin
+			 (set-data! m (position (owner g)) <unmineable-wall>)
+			 'success)))
+	  ('failure
+	   (if (eq? (get-data m (coordinates g)) <unmineable-wall>)
+		   'success
+		   'cant-do))
+	  (else status))))
+
+(define-class <build-building-goal> (<goal>)
+  (priority #:init-value 10 #:accessor priority #:init-keyword #:priority)
+  (width #:init-value 5 #:accessor width #:init-keyword #:w)
+  (height #:init-value 5 #:accessor height #:init-keyword #:h)
+  (state #:init-value 'find-space #:accessor state))
+
+(define-method (init-goal (g <build-building-goal>))
+  (add-goal! g (make <find-clear-space-goal> #:w (width g) #:h (height g))))
+
+(define-method (do-goal (g <build-building-goal>))
+  (let ((status (next-method)))
+	(case status
+	  ('success
+	   (case (state g)
+		 ('find-space
+		  (set! (prerequisites g) '())
+		  (for-each (lambda (p)
+					  (add-goal! g (make <place-wall-goal> #:coords p)))
+					(append (map->list (seen-map (owner g))
+									   (lambda (x y data) (cons x y))
+									   (iota 1 (car (position (owner g))))
+									   (iota (height g) (cdr (position (owner g)))))
+							(map->list (seen-map (owner g))
+									   (lambda (x y data) (cons x y))
+									   (iota (width g) (car (position (owner g))))
+									   (iota 1 (cdr (position (owner g)))))
+							(map->list (seen-map (owner g))
+									   (lambda (x y data) (cons x y))
+									   (iota 1 (1- (+ (width g) (car (position (owner g))))))
+									   (iota (height g) (1- (+ (height g) (cdr (position (owner g))))) -1))
+							(map->list (seen-map (owner g))
+									   (lambda (x y data) (cons x y))
+									   (iota (width g) (1- (+ (width g) (car (position (owner g))))) -1)
+									   (iota 1 (1- (+ (height g) (cdr (position (owner g)))))))))
+		  (set! (state g) 'building)
+		  'progressed)
+		 ('building
+		  'success))
+	   )
+	  (else status))))

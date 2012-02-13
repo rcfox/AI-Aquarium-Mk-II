@@ -25,6 +25,7 @@
 (for-each (lambda (e)
 			(add-goal! e (make <wander-goal>))
 			(add-goal! e (make <explore-goal>))
+			(add-goal! e (make <build-building-goal>))
 			(for-each (lambda (x) (add-goal! e (make <mine-goal>))) (iota 100))
 			(add-goal! e (make <kill-meta-goal> #:type <bad-guy>))
 			(add-goal! e (make <collect-goal> #:type <item>))
