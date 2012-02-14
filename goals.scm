@@ -50,6 +50,9 @@
 (define-method (init-goal (g <goal>))
   #f)
 
+(define-method (reset-goal (g <goal>))
+  (set! (status g) 'not-started))
+
 (define-method (do-goal (g <goal>))
   (let ((receiver (lambda (exit-loop)
 					(for-each (lambda (p)
@@ -284,7 +287,9 @@
 	  ('failure
 	   (if (eq? (get-data m (coordinates g)) <unmineable-wall>)
 		   'success
-		   'cant-do))
+		   (begin
+			 (for-each reset-goal (prerequisites g))
+			 'cant-do)))
 	  (else status))))
 
 (define-class <build-building-goal> (<goal>)
