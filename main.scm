@@ -11,6 +11,7 @@
 (load "camera.scm")
 (load "overlays.scm")
 (load "keys.scm")
+(load "mouse.scm")
 
 (define m (make <cave-map> #:w 64 #:h 64))
 
@@ -55,6 +56,7 @@
 					  (for-each draw cameras)
 					  (flush-console)
 					  (try-key-hook (check-keys KEY_PRESSED))
+					  (try-mouse-hook (check-mouse))
 					  (if running
 						  (begin
 							(for-each (lambda (e) (look e) (do-goal e)) (filter (lambda (x) (is-a? x <has-goals>)) (entities m))))
