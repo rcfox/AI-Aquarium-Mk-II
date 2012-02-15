@@ -34,18 +34,19 @@
 	  (do-goal e (goals e))))
 
 (define-method (do-goal (e <has-goals>) (goal-list <list>))
-  (let* ((g (car goal-list))
-		 (status (do-goal g)))
-	(case status
-	  ('cant-do
-	   (do-goal e (cdr goal-list))) ;; try the next goal
-	  ('progressed '())
-	  ('success
-	   (remove-goal! e g)
-	   (run-hook (success-hook g) g))
-	  ('failure
-	   (remove-goal! e g)
-	   (run-hook (failure-hook g) g)))))
+  (if (not (null? goal-list))
+	  (let* ((g (car goal-list))
+			 (status (do-goal g)))
+		(case status
+		  ('cant-do
+		   (do-goal e (cdr goal-list))) ;; try the next goal
+		  ('progressed '())
+		  ('success
+		   (remove-goal! e g)
+		   (run-hook (success-hook g) g))
+		  ('failure
+		   (remove-goal! e g)
+		   (run-hook (failure-hook g) g))))))
 
 (define-method (init-goal (g <goal>))
   #f)
