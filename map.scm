@@ -13,6 +13,7 @@
 (define <empty> (make <map-element> #:r #\ #:walkable #t #:transparent #t))
 (define <wall> (make <map-element> #:r #\# #:f '(150 150 150) #:walkable #f #:transparent #f #:cost 99999))
 (define <unmineable-wall> (make <map-element> #:r #\# #:f '(150 150 150) #:walkable #f #:transparent #f #:cost 99999))
+(define <building-wall> (make <map-element> #:r #\# #:f '(139 69 19) #:walkable #f #:transparent #f #:cost 99999))
 (define <floor> (make <map-element> #:r #\. #:f '(0 50 0) #:walkable #t #:transparent #t))
 
 (define-class <map> ()

@@ -281,13 +281,13 @@
   (let ((status (next-method)))
 	(case status
 	  ('success
-	   (if (eq? (get-data m (coordinates g)) <unmineable-wall>)
+	   (if (eq? (get-data m (coordinates g)) <building-wall>)
 		   'success
 		   (begin
-			 (set-data! m (coordinates g) <unmineable-wall>)
+			 (set-data! m (coordinates g) <building-wall>)
 			 'success)))
 	  ('failure
-	   (if (eq? (get-data m (coordinates g)) <unmineable-wall>)
+	   (if (eq? (get-data m (coordinates g)) <building-wall>)
 		   'success
 		   (begin
 			 (for-each reset-goal (prerequisites g))
