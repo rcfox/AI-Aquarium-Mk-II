@@ -27,3 +27,17 @@
 													 (set-back-colour! (- (car c) x-offset) (- (cdr c) y-offset) '(100 0 0) BKGND_ADD)))
 											   (path->list (path e))))
 								   (filter (lambda (x) (is-a? x <can-move>)) (entities m))))))
+
+(define draw-entity-overlay (lambda (camera e)
+							  (lambda (x-offset y-offset)
+								(let ((x (car (position e)))
+									  (y (cdr (position e)))
+									  (a (appearance e)))
+								  (if (on-camera? camera x y)
+									  (draw-character (- x x-offset) (- y y-offset) (representation a) (fore-colour a) (back-colour a)))))))
+
+(define draw-entities-overlay (lambda (camera)
+								(lambda (x-offset y-offset)
+								  (for-each (lambda (e)
+											  ((draw-entity-overlay camera e) x-offset y-offset))
+											(entities m)))))

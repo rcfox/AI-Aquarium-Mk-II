@@ -42,15 +42,17 @@
 			)
 		  (filter (lambda (x) (is-a? x <monster>)) (entities m)))
 
-(define cam (make <camera> #:w 80 #:h 60 #:map (seen-map player)))
-(add-overlay! cam 'fov (fov-overlay-single cam player))
-(add-hook! (moved-hook player) (lambda (e) (set! (position cam) (position e))))
+(define cam (make <camera> #:w 64 #:h 64 #:map m))
+(add-overlay! cam 'entities (draw-entities-overlay cam))
+(let ((x (/ (width m) 2))
+	  (y (/ (height m) 2)))
+  (set! (position cam) (cons x y)))
 
 (define cameras (list cam))
 
 (define running #t)
 (define main-loop (lambda ()
-					(init-console 80 60 "Roguelike Test" 10)
+					(init-console 64 64 "Roguelike Test" 10)
 					(while #t
 					  (clear-console)
 					  (for-each draw cameras)

@@ -18,5 +18,29 @@
 
 
 (add-mouse-hook! 'left (lambda (mouse-info)
-						 (display (assoc-ref mouse-info "console-pos"))
-						 (newline)))
+						 (let* ((console-pos (assoc-ref mouse-info "console-pos"))
+								(camera (find (lambda (c) (contains-pos? c console-pos)) cameras)))
+						   (if camera
+							   (set! (position camera) (console-coords->map-coords cam console-pos))
+							   (begin
+								 (display (cons console-pos camera))
+								 (newline)
+								 (describe (first cameras))
+								 (newline))))))
+
+(add-mouse-hook! 'right (lambda (mouse-info)
+						 (let* ((console-pos (assoc-ref mouse-info "console-pos"))
+								(camera (find (lambda (c) (contains-pos? c console-pos)) cameras)))
+						   (if camera
+							   (let ((entities (quadtree-search (quadtree m) (console-coords->map-coords cam console-pos))))
+								 (if (null? entities)
+									 (begin
+									   (clear-camera-following! camera)
+									   (add-overlay! camera 'entities (draw-entities-overlay camera)))
+									 (set-camera-following! camera (first entities)))
+								 (set! player (following camera)))
+							   (begin
+								 (display (cons console-pos camera))
+								 (newline)
+								 (describe (first cameras))
+								 (newline))))))

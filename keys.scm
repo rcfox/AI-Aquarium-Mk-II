@@ -43,3 +43,10 @@
 									 (remove-overlay! camera 'path)
 									 (add-overlay! camera 'path (path-overlay camera))))
 							   cameras)))
+
+(add-key-hook! "c" (lambda ()
+					 (for-each (lambda (camera)
+								 (let ((x (/ (width m) 2))
+									   (y (/ (height m) 2)))
+								   (set! (position camera) (cons x y))))
+							   cameras)))
