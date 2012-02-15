@@ -1,3 +1,2 @@
 #!/bin/sh
-redo -j3 && ./engine -L . -l main.scm --listen
-
+./engine -L . main.scm

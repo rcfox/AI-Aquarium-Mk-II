@@ -1,5 +1,6 @@
 (use-modules (oop goops describe)
 			 (srfi srfi-1)
+			 (srfi srfi-98)
 			 (ice-9 threads))
 
 (load "util.scm")
@@ -47,11 +48,18 @@
 (define cameras (list cam))
 
 (define running #t)
-(make-thread (lambda ()
-			   (init-console 80 60 "Roguelike Test" 10)
-			   (while running
-				 (for-each (lambda (e) (look e) (do-goal e)) (filter (lambda (x) (is-a? x <has-goals>)) (entities m)))
-				 (clear-console)
-				 (for-each draw cameras)
-				 (flush-console)
-				 (try-key-hook (check-keys KEY_PRESSED)))))
+(define main-loop (lambda ()
+					(init-console 80 60 "Roguelike Test" 10)
+					(while #t
+					  (clear-console)
+					  (for-each draw cameras)
+					  (flush-console)
+					  (try-key-hook (check-keys KEY_PRESSED))
+					  (if running
+						  (begin
+							(for-each (lambda (e) (look e) (do-goal e)) (filter (lambda (x) (is-a? x <has-goals>)) (entities m))))
+						  ))))
+
+(if (get-environment-variable "RUNNING_IN_REPL")
+	(make-thread main-loop)
+	(main-loop))

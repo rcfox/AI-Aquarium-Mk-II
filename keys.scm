@@ -22,8 +22,13 @@
 									 (run-hook h))))
 							 ))))
 
-(add-key-hook! "q" (lambda ()
+(add-key-hook! " " (lambda ()
 					 (set! running (not running))))
+
+(add-key-hook! "q" (lambda ()
+					 (if (get-environment-variable "RUNNING_IN_REPL")
+						 (set! running #f)
+						 (exit))))
 
 (add-key-hook! "f" (lambda ()
 					 (for-each (lambda (camera)
