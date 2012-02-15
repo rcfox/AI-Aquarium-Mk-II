@@ -78,13 +78,14 @@
 		 (#t 'cant-do)))))
 
 (define-class <move-goal> (<goal>)
-  (coordinates #:init-value '(0 . 0) #:accessor coordinates #:init-keyword #:coords))
+  (coordinates #:init-value '(0 . 0) #:accessor coordinates #:init-keyword #:coords)
+  (max-distance #:init-value 0 #:accessor max-distance #:init-keyword #:max-dist))
 
 (define-method (do-goal (g <move-goal>))
   (let ((status (next-method)))
 	(case status
 	  ('success (let ((e (owner g)))
-				  (if (equal? (coordinates g) (position e))
+				  (if (<= (distance (coordinates g) (position e)) (max-distance g))
 					  'success
 					  (begin
 						;; Reset the destination if this goal got interrupted
@@ -273,7 +274,7 @@
   (coordinates #:accessor coordinates #:init-keyword #:coords))
 
 (define-method (init-goal (g <place-wall-goal>))
-  (add-goal! g (make <move-goal> #:coords (coordinates g))))
+  (add-goal! g (make <move-goal> #:coords (coordinates g) #:max-dist 1.5)))
 
 (define-method (do-goal (g <place-wall-goal>))
   (let ((status (next-method)))
@@ -282,7 +283,7 @@
 	   (if (eq? (get-data m (coordinates g)) <unmineable-wall>)
 		   'success
 		   (begin
-			 (set-data! m (position (owner g)) <unmineable-wall>)
+			 (set-data! m (coordinates g) <unmineable-wall>)
 			 'success)))
 	  ('failure
 	   (if (eq? (get-data m (coordinates g)) <unmineable-wall>)
@@ -312,20 +313,20 @@
 					  (add-goal! g (make <place-wall-goal> #:coords p)))
 					(append (map->list (seen-map (owner g))
 									   (lambda (x y data) (cons x y))
-									   (iota 1 (car (position (owner g))))
-									   (iota (height g) (cdr (position (owner g)))))
-							(map->list (seen-map (owner g))
-									   (lambda (x y data) (cons x y))
 									   (iota (width g) (car (position (owner g))))
 									   (iota 1 (cdr (position (owner g)))))
-							(map->list (seen-map (owner g))
-									   (lambda (x y data) (cons x y))
-									   (iota 1 (1- (+ (width g) (car (position (owner g))))))
-									   (iota (height g) (1- (+ (height g) (cdr (position (owner g))))) -1))
+							(reverse (map->list (seen-map (owner g))
+												(lambda (x y data) (cons x y))
+												(iota 1 (1- (+ (width g) (car (position (owner g))))))
+												(iota (height g) (1- (+ (height g) (cdr (position (owner g))))) -1)))
 							(map->list (seen-map (owner g))
 									   (lambda (x y data) (cons x y))
 									   (iota (width g) (1- (+ (width g) (car (position (owner g))))) -1)
-									   (iota 1 (1- (+ (height g) (cdr (position (owner g)))))))))
+									   (iota 1 (1- (+ (height g) (cdr (position (owner g)))))))
+							(reverse (map->list (seen-map (owner g))
+												(lambda (x y data) (cons x y))
+												(iota 1 (car (position (owner g))))
+												(iota (height g) (cdr (position (owner g))))))))
 		  (set! (state g) 'building)
 		  'progressed)
 		 ('building
