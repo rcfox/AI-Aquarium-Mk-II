@@ -118,6 +118,20 @@ SCM_DEFINE(scm_console_flush, "flush-console", 0, 0, 0,
 	return SCM_UNSPECIFIED;
 }
 
+SCM_DEFINE(scm_save_screenshot, "save-screenshot", 0, 1, 0,
+           (SCM filename),
+           "Capture the console as an image.")
+{
+	char* file = NULL;
+	if(!SCM_UNBNDP(filename)) {
+		file = scm_to_locale_string(filename);
+	}
+
+	TCOD_sys_save_screenshot(file);
+
+	return SCM_UNSPECIFIED;
+}
+
 void init_libtcod_console()
 {
 #ifndef SCM_MAGIC_SNARFER

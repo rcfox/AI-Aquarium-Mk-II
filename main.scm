@@ -51,18 +51,22 @@
 (define cameras (list cam))
 
 (define running #t)
+(define record-video #f)
 (define main-loop (lambda ()
 					(init-console 64 64 "Roguelike Test" 10)
 					(while #t
-					  (clear-console)
-					  (for-each draw cameras)
-					  (flush-console)
 					  (try-key-hook (check-keys KEY_PRESSED))
 					  (try-mouse-hook (check-mouse))
 					  (if running
 						  (begin
 							(for-each (lambda (e) (look e) (do-goal e)) (filter (lambda (x) (is-a? x <has-goals>)) (entities m))))
-						  ))))
+						  )
+					  (clear-console)
+					  (for-each draw cameras)
+					  (flush-console)
+					  (if record-video
+						  (save-screenshot))
+					  )))
 
 (if (get-environment-variable "RUNNING_IN_REPL")
 	(make-thread main-loop)
